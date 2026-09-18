@@ -1,16 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { X, User, Shield, Trash2, Check, Database } from 'lucide-react';
-import { SecurityConfig } from '../types/chat';
+import React, { useState } from 'react';
+import {
+  X,
+  User,
+  Shield,
+  Trash2,
+  Check,
+  Database,
+  Palette,
+  HelpCircle,
+  FolderSync,
+  Lock
+} from 'lucide-react';
+import { SecurityConfig, ChatContact } from '../types/chat';
 import { resetSecurityConfig } from '../services/crypto';
 import { clearSavedMacZipHandle } from '../services/fileStorage';
+import { ManageStorageView } from './Settings/ManageStorageView';
+
+export type SettingsTab = 'profile' | 'storage' | 'privacy' | 'chats' | 'help';
 
 interface SettingsModalProps {
   ownerName: string;
   onUpdateOwnerName: (name: string) => void;
   availableParticipants: string[];
   securityConfig: SecurityConfig | null;
+  chats: ChatContact[];
+  onOpenChat: (chatId: string) => void;
   onClose: () => void;
   onResetAll: () => void;
+  onRelinkFile?: () => void;
+  initialTab?: SettingsTab;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -18,28 +36,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onUpdateOwnerName,
   availableParticipants,
   securityConfig,
+  chats,
+  onOpenChat,
   onClose,
-  onResetAll
+  onResetAll,
+  onRelinkFile,
+  initialTab = 'storage'
 }) => {
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
   const [selectedOwner, setSelectedOwner] = useState(ownerName);
   const [customOwner, setCustomOwner] = useState('');
   const [isSaved, setIsSaved] = useState(false);
-  const [storageStats, setStorageStats] = useState<{ usedMb: string; percentQuota: string } | null>(null);
-
-  useEffect(() => {
-    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
-      navigator.storage
-        .estimate()
-        .then(({ usage, quota }) => {
-          if (usage !== undefined) {
-            const mb = (usage / (1024 * 1024)).toFixed(2);
-            const pct = quota ? ((usage / quota) * 100).toFixed(4) : '< 0.01';
-            setStorageStats({ usedMb: `${mb} MB`, percentQuota: `${pct}%` });
-          }
-        })
-        .catch(() => {});
-    }
-  }, []);
+  const [autoLockVal, setAutoLockVal] = useState(securityConfig?.autoLockMinutes ?? 15);
+  const [selectedWallpaper, setSelectedWallpaper] = useState<'default' | 'solid' | 'green'>('default');
 
   const handleSaveIdentity = () => {
     const finalName = customOwner.trim() || selectedOwner;
@@ -51,7 +60,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   const handleClearAll = async () => {
-    if (confirm('Are you sure you want to disconnect your file and reset settings?')) {
+    if (
+      confirm(
+        'Are you sure you want to disconnect your file, clear all cached storage, and reset settings?'
+      )
+    ) {
       await resetSecurityConfig();
       await clearSavedMacZipHandle();
       onResetAll();
@@ -61,147 +74,385 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 select-none text-[#e9edef] cursor-pointer"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 select-none text-[#e9edef] cursor-pointer animate-in fade-in duration-150"
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-[#202c33] rounded-2xl max-w-md w-full border border-[#2a3942] shadow-2xl flex flex-col overflow-hidden cursor-default"
+        className="bg-[#202c33] rounded-2xl max-w-4xl w-full h-[90vh] max-h-[780px] border border-[#2a3942] shadow-2xl flex flex-col md:flex-row overflow-hidden cursor-default"
       >
-        {/* Header */}
-        <div className="h-14 px-4 bg-[#111b21] flex items-center justify-between border-b border-[#222d34]">
-          <h2 className="font-semibold text-base">WhatsApp Settings</h2>
-          <button
-            onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full text-[#aebac1] hover:text-white transition-colors cursor-pointer"
-            title="Close Settings (or click outside)"
-          >
-            <X className="w-5 h-5" />
-          </button>
+        {/* Left Settings Navigation Bar (WhatsApp Web Style) */}
+        <div className="w-full md:w-64 bg-[#111b21] border-b md:border-b-0 md:border-r border-[#222d34] flex flex-col flex-shrink-0">
+          {/* Header */}
+          <div className="h-16 px-4 flex items-center justify-between border-b border-[#222d34]">
+            <h2 className="font-semibold text-lg text-[#e9edef]">Settings</h2>
+            <button
+              onClick={onClose}
+              className="md:hidden w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-full text-[#aebac1] hover:text-white transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+
+          {/* User Profile Mini Badge */}
+          <div className="p-4 border-b border-[#222d34] flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-base shadow-md flex-shrink-0">
+              {ownerName.slice(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-sm text-[#e9edef] truncate">{ownerName}</p>
+              <p className="text-xs text-[#8696a0] truncate">Available</p>
+            </div>
+          </div>
+
+          {/* Navigation Tabs */}
+          <div className="p-2 space-y-1 overflow-x-auto md:overflow-y-auto flex md:flex-col flex-row flex-1 custom-scrollbar">
+            <button
+              onClick={() => setActiveTab('storage')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+                activeTab === 'storage'
+                  ? 'bg-[#2a3942] text-[#00a884]'
+                  : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
+              }`}
+            >
+              <Database className="w-4 h-4 flex-shrink-0" />
+              <span>Storage & Data</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('profile')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+                activeTab === 'profile'
+                  ? 'bg-[#2a3942] text-[#00a884]'
+                  : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
+              }`}
+            >
+              <User className="w-4 h-4 flex-shrink-0" />
+              <span>Profile & Identity</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('privacy')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+                activeTab === 'privacy'
+                  ? 'bg-[#2a3942] text-[#00a884]'
+                  : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
+              }`}
+            >
+              <Shield className="w-4 h-4 flex-shrink-0" />
+              <span>Privacy & Security</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('chats')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+                activeTab === 'chats'
+                  ? 'bg-[#2a3942] text-[#00a884]'
+                  : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
+              }`}
+            >
+              <Palette className="w-4 h-4 flex-shrink-0" />
+              <span>Chats & Wallpaper</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('help')}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+                activeTab === 'help'
+                  ? 'bg-[#2a3942] text-[#00a884]'
+                  : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
+              }`}
+            >
+              <HelpCircle className="w-4 h-4 flex-shrink-0" />
+              <span>Archive & Reset</span>
+            </button>
+          </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 space-y-6 overflow-y-auto max-h-[75vh]">
-          {/* Identity Section */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#00a884]">
-              <User className="w-4 h-4" />
-              <span>Identity ("Who is You?")</span>
-            </div>
-            <p className="text-xs text-[#8696a0]">
-              Select which sender name represents you. Outgoing messages will appear as green bubbles on the right.
-            </p>
-
-            <select
-              value={selectedOwner}
-              onChange={e => {
-                setSelectedOwner(e.target.value);
-                setCustomOwner('');
-              }}
-              className="w-full bg-[#111b21] border border-[#2a3942] rounded-lg px-3 py-2 text-sm text-[#e9edef] outline-none"
+        {/* Right Tab Content Area */}
+        <div className="flex-1 flex flex-col bg-[#202c33] min-w-0">
+          {/* Content Header (Desktop Close Button) */}
+          <div className="h-16 px-6 bg-[#202c33] border-b border-[#2a3942] hidden md:flex items-center justify-between">
+            <h3 className="font-semibold text-base text-[#e9edef] capitalize">
+              {activeTab === 'storage' && 'Storage and Data'}
+              {activeTab === 'profile' && 'Profile & Identity'}
+              {activeTab === 'privacy' && 'Privacy & Security'}
+              {activeTab === 'chats' && 'Chats & Wallpaper'}
+              {activeTab === 'help' && 'Archive Management & Reset'}
+            </h3>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 flex items-center justify-center hover:bg-white/10 rounded-full text-[#aebac1] hover:text-white transition-colors cursor-pointer"
+              title="Close Settings (or press Esc)"
             >
-              {availableParticipants.map(p => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-            <div className="pt-1">
-              <input
-                type="text"
-                placeholder="Or type a custom name..."
-                value={customOwner}
-                onChange={e => setCustomOwner(e.target.value)}
-                className="w-full bg-[#111b21] border border-[#2a3942] rounded-lg px-3 py-1.5 text-xs text-[#e9edef] outline-none placeholder-[#8696a0]"
+          {/* Scrollable Content Body */}
+          <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar">
+            {/* TAB 1: Storage and Data */}
+            {activeTab === 'storage' && (
+              <ManageStorageView
+                chats={chats}
+                onOpenChat={chatId => {
+                  onClose();
+                  onOpenChat(chatId);
+                }}
               />
-            </div>
+            )}
 
-            <button
-              onClick={handleSaveIdentity}
-              className="px-4 py-2 bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-semibold rounded-md shadow flex items-center gap-1.5 transition-colors"
-            >
-              {isSaved ? (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Saved!</span>
-                </>
-              ) : (
-                <span>Update Identity</span>
-              )}
-            </button>
-          </div>
+            {/* TAB 2: Profile & Identity */}
+            {activeTab === 'profile' && (
+              <div className="max-w-lg space-y-6">
+                <div className="flex flex-col items-center sm:flex-row sm:items-start gap-4 pb-6 border-b border-[#2a3942]">
+                  <div className="w-20 h-20 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-2xl shadow-lg flex-shrink-0">
+                    {ownerName.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div className="space-y-1 text-center sm:text-left">
+                    <h4 className="text-base font-semibold text-[#e9edef]">Your Identity</h4>
+                    <p className="text-xs text-[#8696a0]">
+                      Messages sent by this name are marked as outgoing (right-hand green bubbles).
+                    </p>
+                  </div>
+                </div>
 
-          {/* Security Status */}
-          <div className="pt-4 border-t border-[#2a3942] space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#00a884]">
-              <Shield className="w-4 h-4" />
-              <span>Security & Encryption</span>
-            </div>
-            <div className="bg-[#111b21] p-3 rounded-lg text-xs space-y-1">
-              <div className="flex justify-between">
-                <span className="text-[#8696a0]">Protection:</span>
-                <span className="font-medium text-[#00a884]">Extension Password</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8696a0]">Cipher:</span>
-                <span className="font-mono text-gray-300">AES-GCM 256</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8696a0]">Auto-Lock:</span>
-                <span className="text-gray-300">
-                  {securityConfig?.autoLockMinutes
-                    ? `${securityConfig.autoLockMinutes} minutes`
-                    : 'On tab close'}
-                </span>
-              </div>
-            </div>
-          </div>
+                <div className="space-y-3">
+                  <label className="text-xs font-semibold text-[#00a884] uppercase tracking-wider block">
+                    Select Identity Name
+                  </label>
+                  <select
+                    value={selectedOwner}
+                    onChange={e => {
+                      setSelectedOwner(e.target.value);
+                      setCustomOwner('');
+                    }}
+                    className="w-full bg-[#111b21] border border-[#2a3942] rounded-lg px-3 py-2.5 text-sm text-[#e9edef] outline-none cursor-pointer"
+                  >
+                    {availableParticipants.map(p => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </select>
 
-          {/* Browser Storage Usage */}
-          <div className="pt-4 border-t border-[#2a3942] space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#00a884]">
-              <Database className="w-4 h-4" />
-              <span>Browser Storage Footprint</span>
-            </div>
-            <div className="bg-[#111b21] p-3 rounded-lg text-xs space-y-1.5">
-              <div className="flex justify-between">
-                <span className="text-[#8696a0]">Storage Used:</span>
-                <span className="font-semibold text-[#00a884]">
-                  {storageStats ? storageStats.usedMb : 'Estimating...'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8696a0]">Quota Used:</span>
-                <span className="text-gray-300">
-                  {storageStats ? storageStats.percentQuota : '< 0.01%'}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[#8696a0]">Media Storage:</span>
-                <span className="text-[#8696a0]">0 MB (streamed from Mac)</span>
-              </div>
-            </div>
-            <p className="text-[11px] text-[#8696a0] leading-relaxed">
-              Only text is cached for instant reload (~50ms). Photos, audio notes, and videos remain strictly inside your Mac's zip file.
-            </p>
-          </div>
+                  <div className="pt-2">
+                    <label className="text-xs text-[#8696a0] block mb-1">
+                      Or enter custom sender name:
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Type custom name..."
+                      value={customOwner}
+                      onChange={e => setCustomOwner(e.target.value)}
+                      className="w-full bg-[#111b21] border border-[#2a3942] rounded-lg px-3 py-2 text-sm text-[#e9edef] outline-none placeholder-[#8696a0]"
+                    />
+                  </div>
 
-          {/* Reset / Unlink */}
-          <div className="pt-4 border-t border-[#2a3942] space-y-3">
-            <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
-              <Trash2 className="w-4 h-4" />
-              <span>Disconnect & Reset</span>
-            </div>
-            <p className="text-xs text-[#8696a0]">
-              Removes the Mac local zip file handle and resets encryption settings from this browser.
-            </p>
-            <button
-              onClick={handleClearAll}
-              className="w-full py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold rounded-lg border border-red-500/30 transition-colors flex items-center justify-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              <span>Disconnect File & Reset Settings</span>
-            </button>
+                  <button
+                    onClick={handleSaveIdentity}
+                    className="px-5 py-2.5 bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-semibold rounded-lg shadow flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {isSaved ? (
+                      <>
+                        <Check className="w-4 h-4" />
+                        <span>Saved Successfully!</span>
+                      </>
+                    ) : (
+                      <span>Save Changes</span>
+                    )}
+                  </button>
+                </div>
+
+                <div className="pt-4 border-t border-[#2a3942] space-y-2">
+                  <label className="text-xs font-semibold text-[#8696a0] uppercase tracking-wider block">
+                    About
+                  </label>
+                  <div className="bg-[#111b21] p-3 rounded-lg text-xs text-[#e9edef]">
+                    Hey there! I am using WhatsApp.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Privacy & Security */}
+            {activeTab === 'privacy' && (
+              <div className="max-w-lg space-y-6">
+                <div className="bg-[#111b21] p-4 rounded-xl border border-[#2a3942] space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-[#00a884]">
+                    <Shield className="w-4 h-4" />
+                    <span>Authentication & Encryption</span>
+                  </div>
+                  <p className="text-xs text-[#8696a0]">
+                    Your session is locked with AES-GCM 256-bit encryption derived via PBKDF2 from your deterministic password generator extension.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs pt-1">
+                    <div className="bg-[#202c33] p-2.5 rounded-lg border border-[#2a3942]">
+                      <span className="text-[#8696a0] block text-[11px]">Method</span>
+                      <span className="font-medium text-[#00a884]">Extension Password</span>
+                    </div>
+                    <div className="bg-[#202c33] p-2.5 rounded-lg border border-[#2a3942]">
+                      <span className="text-[#8696a0] block text-[11px]">Cipher</span>
+                      <span className="font-mono text-[#e9edef]">AES-GCM 256</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Auto-Lock Settings */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-[#00a884] uppercase tracking-wider">
+                    <Lock className="w-3.5 h-3.5" />
+                    <span>Screen Lock / Auto-Lock</span>
+                  </div>
+                  <p className="text-xs text-[#8696a0]">
+                    Automatically lock the screen after a period of inactivity on this device.
+                  </p>
+
+                  <select
+                    value={autoLockVal}
+                    onChange={e => setAutoLockVal(parseInt(e.target.value, 10))}
+                    className="w-full bg-[#111b21] border border-[#2a3942] rounded-lg px-3 py-2.5 text-sm text-[#e9edef] outline-none cursor-pointer"
+                  >
+                    <option value={1}>After 1 minute of inactivity</option>
+                    <option value={15}>After 15 minutes of inactivity (Recommended)</option>
+                    <option value={60}>After 1 hour</option>
+                    <option value={0}>Only on tab close</option>
+                  </select>
+                </div>
+
+                {/* Zero Network Privacy Notice */}
+                <div className="p-4 bg-[#00a884]/10 rounded-xl border border-[#00a884]/30 text-xs space-y-1.5">
+                  <div className="flex items-center gap-2 font-semibold text-[#00a884]">
+                    <Check className="w-4 h-4" />
+                    <span>100% Client-Side Private</span>
+                  </div>
+                  <p className="text-[#8696a0] leading-relaxed">
+                    Zero network requests are made with your messages, media, or passwords. Everything runs strictly in your local Mac browser.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: Chats & Wallpaper */}
+            {activeTab === 'chats' && (
+              <div className="max-w-lg space-y-6">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-[#00a884] uppercase tracking-wider">
+                    <Palette className="w-3.5 h-3.5" />
+                    <span>Chat Wallpaper</span>
+                  </div>
+                  <p className="text-xs text-[#8696a0]">
+                    Customize the background of your WhatsApp chat conversation screen.
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-3 pt-1">
+                    <button
+                      onClick={() => setSelectedWallpaper('default')}
+                      className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-xs transition-all cursor-pointer ${
+                        selectedWallpaper === 'default'
+                          ? 'border-[#00a884] bg-[#00a884]/15 text-[#e9edef]'
+                          : 'border-[#2a3942] bg-[#111b21] text-[#8696a0] hover:text-[#e9edef]'
+                      }`}
+                    >
+                      <div className="w-full h-14 rounded bg-[#0b141a] flex items-center justify-center text-[10px] text-[#8696a0] border border-[#222d34]">
+                        Doodle
+                      </div>
+                      <span className="font-medium">WhatsApp Doodle</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedWallpaper('solid')}
+                      className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-xs transition-all cursor-pointer ${
+                        selectedWallpaper === 'solid'
+                          ? 'border-[#00a884] bg-[#00a884]/15 text-[#e9edef]'
+                          : 'border-[#2a3942] bg-[#111b21] text-[#8696a0] hover:text-[#e9edef]'
+                      }`}
+                    >
+                      <div className="w-full h-14 rounded bg-[#111b21] flex items-center justify-center text-[10px] text-[#8696a0] border border-[#222d34]">
+                        Dark
+                      </div>
+                      <span className="font-medium">Solid Dark</span>
+                    </button>
+
+                    <button
+                      onClick={() => setSelectedWallpaper('green')}
+                      className={`p-3 rounded-xl border flex flex-col items-center gap-2 text-xs transition-all cursor-pointer ${
+                        selectedWallpaper === 'green'
+                          ? 'border-[#00a884] bg-[#00a884]/15 text-[#e9edef]'
+                          : 'border-[#2a3942] bg-[#111b21] text-[#8696a0] hover:text-[#e9edef]'
+                      }`}
+                    >
+                      <div className="w-full h-14 rounded bg-[#06241e] flex items-center justify-center text-[10px] text-[#00a884] border border-[#0b3d33]">
+                        Classic
+                      </div>
+                      <span className="font-medium">Classic Green</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-[#2a3942] space-y-3">
+                  <label className="text-xs font-semibold text-[#8696a0] uppercase tracking-wider block">
+                    Theme
+                  </label>
+                  <div className="bg-[#111b21] p-3 rounded-lg text-xs flex items-center justify-between text-[#e9edef]">
+                    <span>Color Theme</span>
+                    <span className="text-[#00a884] font-medium">WhatsApp Dark (Default)</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 5: Archive & Reset */}
+            {activeTab === 'help' && (
+              <div className="max-w-lg space-y-6">
+                {/* Archive File Link */}
+                <div className="bg-[#111b21] p-4 rounded-xl border border-[#2a3942] space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-sm font-semibold text-[#00a884]">
+                      <FolderSync className="w-4 h-4" />
+                      <span>Mac Local Zip Connection</span>
+                    </div>
+                    <span className="text-xs text-[#00a884] bg-[#00a884]/15 px-2 py-0.5 rounded-full">
+                      Connected
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#8696a0]">
+                    Your chats and media are read directly from your local WhatsApp export zip file on this Mac via the browser File System Access API.
+                  </p>
+
+                  {onRelinkFile && (
+                    <button
+                      onClick={() => {
+                        onClose();
+                        onRelinkFile();
+                      }}
+                      className="px-4 py-2 bg-[#202c33] hover:bg-[#2a3942] text-xs font-semibold rounded-lg border border-[#2a3942] text-[#e9edef] transition-colors flex items-center gap-2 cursor-pointer"
+                    >
+                      <FolderSync className="w-4 h-4 text-[#00a884]" />
+                      <span>Switch / Re-link Zip File</span>
+                    </button>
+                  )}
+                </div>
+
+                {/* Reset Section */}
+                <div className="p-4 rounded-xl border border-red-500/30 bg-red-500/5 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-red-400">
+                    <Trash2 className="w-4 h-4" />
+                    <span>Disconnect File & Clear All Storage</span>
+                  </div>
+                  <p className="text-xs text-[#8696a0] leading-relaxed">
+                    Removes all cached chats from IndexedDB, disconnects the Mac local zip file handle, and resets all encryption settings from this browser.
+                  </p>
+                  <button
+                    onClick={handleClearAll}
+                    className="w-full py-2.5 bg-red-500/15 hover:bg-red-500/25 text-red-400 text-xs font-semibold rounded-lg border border-red-500/40 transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>Disconnect File & Reset Settings</span>
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

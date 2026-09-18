@@ -52,3 +52,32 @@ export interface FileHandleMetadata {
   lastModified: number;
   type: string;
 }
+
+export interface ChatStorageStats {
+  chatId: string;
+  chatName: string;
+  isGroup: boolean;
+  messageCount: number;
+  totalMediaCount: number;
+  imageCount: number;
+  videoCount: number;
+  audioCount: number;
+  documentCount: number;
+  estimatedTextBytes: number;
+  estimatedMediaBytes: number;
+  lastActive?: Date;
+}
+
+export interface SearchableFileItem {
+  id: string;
+  fileName: string;
+  mediaType: MediaType;
+  mimeType: string;
+  chatId: string;
+  chatName: string;
+  sender: string;
+  timestamp: Date;
+  isOutgoing: boolean;
+  messageId: string;
+}
+

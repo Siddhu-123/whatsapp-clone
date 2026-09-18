@@ -33,7 +33,7 @@ import { LockScreen } from './components/LockScreen';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { ChatView } from './components/Chat/ChatView';
 import { MediaLightbox } from './components/Media/MediaLightbox';
-import { SettingsModal } from './components/SettingsModal';
+import { SettingsModal, SettingsTab } from './components/SettingsModal';
 import { MessageSquare } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -42,6 +42,7 @@ export const App: React.FC = () => {
   const [fileMetadata, setFileMetadata] = useState<FileHandleMetadata | null>(null);
   const [isLocked, setIsLocked] = useState(false);
   const [showLockSetup, setShowLockSetup] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<SettingsTab>('storage');
 
   const [chats, setChats] = useState<ChatContact[]>([]);
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
@@ -304,8 +305,21 @@ export const App: React.FC = () => {
           onSelectChat={id => setActiveChatId(id)}
           ownerName={ownerName}
           onLockApp={handleManualLock}
-          onOpenSettings={() => setShowSettings(true)}
+          onOpenSettings={(tab = 'storage') => {
+            setSettingsInitialTab(tab);
+            setShowSettings(true);
+          }}
           onRelinkFile={handleLinkMacZip}
+          onOpenMedia={(url, fileName, mediaType, messageId) =>
+            setLightboxMedia({ url, fileName, mediaType, messageId })
+          }
+          onJumpToFile={(chatId, messageId) => {
+            setActiveChatId(chatId);
+            setTimeout(() => {
+              setTargetJumpMessageId(messageId);
+              setTimeout(() => setTargetJumpMessageId(null), 100);
+            }, 50);
+          }}
         />
       </div>
 
@@ -362,8 +376,14 @@ export const App: React.FC = () => {
           onUpdateOwnerName={handleUpdateOwnerName}
           availableParticipants={allSenders}
           securityConfig={securityConfig}
+          chats={chats}
+          onOpenChat={chatId => {
+            setActiveChatId(chatId);
+          }}
           onClose={() => setShowSettings(false)}
           onResetAll={handleResetAll}
+          onRelinkFile={handleLinkMacZip}
+          initialTab={settingsInitialTab}
         />
       )}
     </div>
