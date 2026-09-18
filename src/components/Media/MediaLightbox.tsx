@@ -61,20 +61,20 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
         onClick={e => e.stopPropagation()}
         className="flex items-center justify-between p-3 sm:p-4 text-gray-200 border-b border-white/10 bg-black/40 z-10 cursor-default"
       >
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-300 truncate max-w-[200px] sm:max-w-md">
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="text-xs sm:text-sm font-medium text-gray-300 truncate max-w-[110px] sm:max-w-md">
             {fileName}
           </span>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3 flex-shrink-0">
           {messageId && onJumpToMessage && (
             <button
               onClick={handleJump}
-              className="px-3 py-2 rounded-lg bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow cursor-pointer"
+              className="px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg bg-[#00a884] hover:bg-[#008f6f] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors shadow cursor-pointer"
               title="Show this message in the chat conversation"
             >
-              <MessageSquare className="w-4 h-4" />
-              <span>Show in chat</span>
+              <MessageSquare className="w-4 h-4 flex-shrink-0" />
+              <span className="hidden sm:inline">Show in chat</span>
             </button>
           )}
 
@@ -82,21 +82,21 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
             <>
               <button
                 onClick={() => setZoom(z => Math.max(0.5, z - 0.25))}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
+                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
                 title="Zoom Out"
               >
                 <ZoomOut className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setZoom(z => Math.min(3, z + 0.25))}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
+                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
                 title="Zoom In"
               >
                 <ZoomIn className="w-5 h-5" />
               </button>
               <button
                 onClick={() => setRotation(r => (r + 90) % 360)}
-                className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
+                className="hidden sm:flex w-10 h-10 items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
                 title="Rotate"
               >
                 <RotateCw className="w-5 h-5" />
@@ -106,17 +106,17 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
 
           <button
             onClick={handleDownload}
-            className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
+            className="w-8 sm:w-10 h-8 sm:h-10 flex items-center justify-center rounded-full hover:bg-white/15 transition-colors cursor-pointer"
             title="Download"
           >
-            <Download className="w-5 h-5" />
+            <Download className="w-4 sm:w-5 h-4 sm:h-5" />
           </button>
           <button
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
+            className="w-8 sm:w-10 h-8 sm:h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-red-500 hover:text-white transition-colors cursor-pointer"
             title="Close (Esc or click outside)"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 sm:w-5 h-4 sm:h-5" />
           </button>
         </div>
       </div>

@@ -40,8 +40,8 @@ export const DropZone: React.FC<DropZoneProps> = ({
   const hasFSAccess = isFileSystemAccessSupported();
 
   return (
-    <div className="w-full h-full flex items-center justify-center bg-[#111b21] p-4 sm:p-8 select-none text-[#e9edef]">
-      <div className="max-w-xl w-full bg-[#202c33] rounded-2xl p-6 sm:p-10 shadow-2xl border border-[#2a3942] flex flex-col items-center text-center">
+    <div className="w-full min-h-full flex items-center justify-center bg-[#111b21] p-3 sm:p-8 overflow-y-auto select-none text-[#e9edef]">
+      <div className="max-w-xl w-full bg-[#202c33] rounded-2xl p-5 sm:p-10 my-auto shadow-2xl border border-[#2a3942] flex flex-col items-center text-center">
         {/* WhatsApp Icon */}
         <div className="w-20 h-20 rounded-full bg-[#00a884]/20 border-2 border-[#00a884] flex items-center justify-center text-[#00a884] mb-5 shadow-lg">
           <FileArchive className="w-10 h-10" />

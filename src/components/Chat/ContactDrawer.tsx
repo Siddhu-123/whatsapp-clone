@@ -181,7 +181,7 @@ export const ContactDrawer: React.FC<ContactDrawerProps> = ({
   const totalMedia = mediaMessages.length;
 
   return (
-    <div className="w-80 sm:w-96 h-full bg-[#111b21] border-l border-[#222d34] flex flex-col z-20 select-none text-[#e9edef] flex-shrink-0">
+    <div className="fixed inset-0 z-30 md:static md:w-80 lg:w-96 h-full bg-[#111b21] border-l border-[#222d34] flex flex-col select-none text-[#e9edef] flex-shrink-0 animate-slide-left md:animate-none">
       {/* Drawer Header with 44px hit-target close button */}
       <div className="h-16 px-4 bg-[#202c33] flex items-center justify-between text-[#e9edef] border-b border-[#222d34]">
         <div className="flex items-center gap-3">

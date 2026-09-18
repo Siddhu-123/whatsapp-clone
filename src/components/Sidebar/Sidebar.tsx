@@ -122,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {ownerName.slice(0, 2).toUpperCase()}
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#e9edef] truncate max-w-[120px] sm:max-w-[150px]">
+            <p className="text-sm font-semibold text-[#e9edef] truncate max-w-[105px] sm:max-w-[140px] md:max-w-[160px]">
               {ownerName}
             </p>
             <p className="text-[11px] text-[#00a884] flex items-center gap-1">
@@ -133,11 +133,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-1 text-[#aebac1]">
+        <div className="flex items-center gap-0.5 sm:gap-1 text-[#aebac1]">
           {/* Storage & Data Quick Button */}
           <button
             onClick={() => onOpenSettings('storage')}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors"
             title="Manage Storage & Data Breakdown"
           >
             <HardDrive className="w-5 h-5 text-gray-300 hover:text-[#00a884]" />
@@ -146,16 +146,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Screen Lock button */}
           <button
             onClick={onLockApp}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors"
             title="Lock WhatsApp (Screen Lock)"
           >
             <Lock className="w-5 h-5 text-gray-300" />
           </button>
 
-          {/* Relink file button */}
+          {/* Relink file button - hide on very small phones since Settings contains it */}
           <button
             onClick={onRelinkFile}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            className="hidden sm:flex p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors"
             title="Connect / Switch Zip File"
           >
             <FolderSync className="w-5 h-5 text-gray-300" />
@@ -164,7 +164,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Full Settings button */}
           <button
             onClick={() => onOpenSettings('storage')}
-            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            className="p-1.5 sm:p-2 rounded-full hover:bg-white/10 transition-colors"
             title="Settings"
           >
             <Settings className="w-5 h-5 text-gray-300" />

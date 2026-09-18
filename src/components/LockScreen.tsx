@@ -65,9 +65,9 @@ export const LockScreen: React.FC<LockScreenProps> = ({
   };
 
   return (
-    <div className="w-screen h-screen flex items-center justify-center bg-[#0c1317] p-4 select-none text-[#e9edef]">
+    <div className="w-full min-h-[100dvh] flex items-center justify-center bg-[#0c1317] p-3 sm:p-4 overflow-y-auto select-none text-[#e9edef]">
       <div
-        className={`max-w-md w-full bg-[#202c33] rounded-2xl p-6 sm:p-8 shadow-2xl border border-[#2a3942] flex flex-col items-center text-center transition-transform ${
+        className={`max-w-md w-full bg-[#202c33] rounded-2xl p-5 sm:p-8 my-auto shadow-2xl border border-[#2a3942] flex flex-col items-center text-center transition-transform ${
           isShaking ? 'animate-bounce' : ''
         }`}
       >

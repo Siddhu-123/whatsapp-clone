@@ -273,27 +273,27 @@ export const ChatView: React.FC<ChatViewProps> = ({
         </div>
 
         {/* Chat Bottom Bar */}
-        <div className="min-h-[62px] px-4 py-2 bg-[#202c33] border-t border-[#222d34] flex items-center gap-3 z-10 select-none">
-          <div className="flex items-center gap-2 text-[#8696a0]">
-            <button className="p-1.5 hover:bg-white/10 rounded-full transition-colors">
-              <Smile className="w-6 h-6" />
+        <div className="min-h-[62px] px-3 sm:px-4 py-2 pb-safe bg-[#202c33] border-t border-[#222d34] flex items-center gap-2 sm:gap-3 z-10 select-none">
+          <div className="flex items-center gap-1 sm:gap-2 text-[#8696a0]">
+            <button className="hidden sm:block p-1.5 hover:bg-white/10 rounded-full transition-colors">
+              <Smile className="w-5 sm:w-6 h-5 sm:h-6" />
             </button>
             <button className="p-1.5 hover:bg-white/10 rounded-full transition-colors">
-              <Paperclip className="w-6 h-6" />
+              <Paperclip className="w-5 sm:w-6 h-5 sm:h-6" />
             </button>
           </div>
 
-          <div className="flex-1 bg-[#2a3942] rounded-lg px-4 py-2 flex items-center">
+          <div className="flex-1 bg-[#2a3942] rounded-lg px-3 sm:px-4 py-2 flex items-center min-w-0">
             <input
               type="text"
               readOnly
-              placeholder="Exported chat history (Read-only view)"
-              className="bg-transparent text-sm text-[#8696a0] placeholder-[#8696a0] w-full outline-none cursor-default"
+              placeholder="Exported chat history (Read-only)"
+              className="bg-transparent text-xs sm:text-sm text-[#8696a0] placeholder-[#8696a0] w-full outline-none cursor-default truncate"
             />
           </div>
 
-          <button className="p-2 text-[#8696a0] hover:bg-white/10 rounded-full transition-colors">
-            <Mic className="w-6 h-6" />
+          <button className="p-1.5 sm:p-2 text-[#8696a0] hover:bg-white/10 rounded-full transition-colors flex-shrink-0">
+            <Mic className="w-5 sm:w-6 h-5 sm:h-6" />
           </button>
         </div>
       </div>

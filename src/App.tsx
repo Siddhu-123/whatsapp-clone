@@ -292,7 +292,7 @@ export const App: React.FC = () => {
 
   // 3. Show WhatsApp Web interface
   return (
-    <div className="w-screen h-screen flex overflow-hidden bg-[#0c1317]">
+    <div className="w-full h-screen h-[100dvh] flex overflow-hidden bg-[#0c1317]">
       {/* Sidebar (Chat List) */}
       <div
         className={`${

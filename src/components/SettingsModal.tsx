@@ -74,17 +74,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 select-none text-[#e9edef] cursor-pointer animate-in fade-in duration-150"
+      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-0 sm:p-4 select-none text-[#e9edef] cursor-pointer animate-in fade-in duration-150"
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="bg-[#202c33] rounded-2xl max-w-4xl w-full h-[90vh] max-h-[780px] border border-[#2a3942] shadow-2xl flex flex-col md:flex-row overflow-hidden cursor-default"
+        className="bg-[#202c33] rounded-none sm:rounded-2xl max-w-4xl w-full h-full sm:h-[90vh] sm:max-h-[780px] border-0 sm:border border-[#2a3942] shadow-2xl flex flex-col md:flex-row overflow-hidden cursor-default"
       >
         {/* Left Settings Navigation Bar (WhatsApp Web Style) */}
         <div className="w-full md:w-64 bg-[#111b21] border-b md:border-b-0 md:border-r border-[#222d34] flex flex-col flex-shrink-0">
           {/* Header */}
-          <div className="h-16 px-4 flex items-center justify-between border-b border-[#222d34]">
-            <h2 className="font-semibold text-lg text-[#e9edef]">Settings</h2>
+          <div className="h-14 sm:h-16 px-4 flex items-center justify-between border-b border-[#222d34]">
+            <h2 className="font-semibold text-base sm:text-lg text-[#e9edef]">Settings</h2>
             <button
               onClick={onClose}
               className="md:hidden w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-full text-[#aebac1] hover:text-white transition-colors"
@@ -93,8 +93,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             </button>
           </div>
 
-          {/* User Profile Mini Badge */}
-          <div className="p-4 border-b border-[#222d34] flex items-center gap-3">
+          {/* User Profile Mini Badge (Desktop Only) */}
+          <div className="hidden md:flex p-4 border-b border-[#222d34] items-center gap-3">
             <div className="w-12 h-12 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-base shadow-md flex-shrink-0">
               {ownerName.slice(0, 2).toUpperCase()}
             </div>
@@ -105,10 +105,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Navigation Tabs */}
-          <div className="p-2 space-y-1 overflow-x-auto md:overflow-y-auto flex md:flex-col flex-row flex-1 custom-scrollbar">
+          <div className="p-1.5 sm:p-2 gap-1 md:space-y-1 overflow-x-auto md:overflow-y-auto flex md:flex-col flex-row flex-shrink-0 custom-scrollbar border-b md:border-b-0 border-[#222d34]">
             <button
               onClick={() => setActiveTab('storage')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeTab === 'storage'
                   ? 'bg-[#2a3942] text-[#00a884]'
                   : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
@@ -120,7 +120,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('profile')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeTab === 'profile'
                   ? 'bg-[#2a3942] text-[#00a884]'
                   : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
@@ -132,7 +132,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('privacy')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeTab === 'privacy'
                   ? 'bg-[#2a3942] text-[#00a884]'
                   : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
@@ -144,7 +144,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('chats')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeTab === 'chats'
                   ? 'bg-[#2a3942] text-[#00a884]'
                   : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'
@@ -156,7 +156,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
             <button
               onClick={() => setActiveTab('help')}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
+              className={`flex items-center gap-2 sm:gap-3 px-3 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-xs sm:text-sm font-medium transition-all text-left whitespace-nowrap cursor-pointer ${
                 activeTab === 'help'
                   ? 'bg-[#2a3942] text-[#00a884]'
                   : 'text-[#8696a0] hover:bg-[#202c33] hover:text-[#e9edef]'

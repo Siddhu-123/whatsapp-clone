@@ -197,13 +197,13 @@ export const GlobalFileSearch: React.FC<GlobalFileSearchProps> = ({
             placeholder="Search files by name, chat, or sender..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            className="flex-1 bg-transparent text-sm text-[#e9edef] outline-none placeholder-[#8696a0]"
+            className="flex-1 bg-transparent text-sm text-[#e9edef] outline-none placeholder-[#8696a0] min-w-0"
             autoFocus
           />
           {searchTerm ? (
             <button
               onClick={() => setSearchTerm('')}
-              className="text-[#8696a0] hover:text-[#e9edef]"
+              className="text-[#8696a0] hover:text-[#e9edef] flex-shrink-0"
               title="Clear search"
             >
               <X className="w-4 h-4" />
@@ -211,7 +211,7 @@ export const GlobalFileSearch: React.FC<GlobalFileSearchProps> = ({
           ) : onClose ? (
             <button
               onClick={onClose}
-              className="text-[#8696a0] hover:text-[#e9edef]"
+              className="text-[#8696a0] hover:text-[#e9edef] flex-shrink-0"
               title="Back to chats"
             >
               <X className="w-4 h-4" />
@@ -220,7 +220,7 @@ export const GlobalFileSearch: React.FC<GlobalFileSearchProps> = ({
         </div>
 
         {/* Media Filter Chips */}
-        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-xs touch-pan-x select-none">
           <button
             onClick={() => setActiveCategory('all')}
             className={`px-3 py-1 rounded-full whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer ${
