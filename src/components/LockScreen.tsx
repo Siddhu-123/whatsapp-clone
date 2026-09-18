@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, ArrowRight, ShieldCheck, Laptop, KeyRound, Download, ExternalLink, X } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, Laptop, KeyRound, ExternalLink, X } from 'lucide-react';
 import { SecurityConfig, FileHandleMetadata } from '../types/chat';
 import { authenticate, setupSecurity } from '../services/crypto';
 
@@ -246,24 +246,15 @@ export const LockScreen: React.FC<LockScreenProps> = ({
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+            <div className="pt-2">
               <a
                 href="https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 py-2.5 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors text-center shadow"
+                className="w-full py-2.5 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors text-center shadow"
               >
                 <ExternalLink className="w-4 h-4" />
                 <span>Add to Chrome (Official Web Store)</span>
-              </a>
-              <a
-                href="./secret-password-generator.zip"
-                download="secret-password-generator.zip"
-                className="py-2.5 px-3 bg-[#111b21] hover:bg-[#202c33] border border-[#2a3942] text-gray-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors text-center"
-                title="Download offline zip"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>Offline .zip</span>
               </a>
             </div>
           </div>

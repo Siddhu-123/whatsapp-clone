@@ -35,9 +35,7 @@ Instead of saving passwords in vulnerable cloud vaults or reusing passwords acro
 * ⏱️ **Auto-Wipe Security**: Secrets clear from memory after 20 seconds, and copied passwords automatically clear from the clipboard.
 
 ### 📦 Get the Extension
-* 🛒 **Chrome Web Store (1-Click Install)**: [**Secret Password Generator on Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal)
-* ⬇️ **Offline Zip Download**: [**Download `secret-password-generator.zip`**](https://siddhu-123.github.io/whatsapp-clone/secret-password-generator.zip)
-* 💻 **Extension Source Code**: [**View on GitHub (`extension/`)**](https://github.com/Siddhu-123/whatsapp-clone/tree/main/extension)
+* 🛒 **Chrome Web Store (Official Extension)**: [**Secret Password Generator on Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal)
 
 #### 🛠️ How to Use with WhatsApp Web:
 1. Install [**Secret Password Generator from the Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal).
