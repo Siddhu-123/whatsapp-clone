@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, ArrowRight, ShieldCheck, Laptop, KeyRound } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, Laptop, KeyRound, Download, ExternalLink, X } from 'lucide-react';
 import { SecurityConfig, FileHandleMetadata } from '../types/chat';
 import { authenticate, setupSecurity } from '../services/crypto';
 
@@ -23,6 +23,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
   const [errorMsg, setErrorMsg] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
+  const [showExtensionModal, setShowExtensionModal] = useState(false);
 
   const triggerShake = () => {
     setIsShaking(true);
@@ -148,7 +149,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           <button
             type="submit"
             disabled={isAuthenticating}
-            className="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] disabled:opacity-50 text-white text-sm font-semibold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 mt-2"
+            className="w-full py-2.5 bg-[#00a884] hover:bg-[#008f6f] disabled:opacity-50 text-white text-sm font-semibold rounded-lg shadow-md transition-colors flex items-center justify-center gap-2 mt-2 cursor-pointer"
           >
             {isAuthenticating ? (
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -161,11 +162,111 @@ export const LockScreen: React.FC<LockScreenProps> = ({
           </button>
         </form>
 
-        <div className="mt-6 flex items-center gap-1.5 text-[11px] text-[#8696a0]">
+        {/* Secret Password Generator Extension Spotlight Card */}
+        <div className="w-full mt-5 p-3.5 bg-[#111b21] rounded-xl border border-[#00a884]/30 text-left space-y-2.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-base">🔐</span>
+              <span className="text-xs font-semibold text-[#e9edef]">Secret Password Generator</span>
+            </div>
+            <span className="text-[10px] bg-[#00a884]/20 text-[#00a884] font-medium px-2 py-0.5 rounded-full">
+              Browser Extension
+            </span>
+          </div>
+          <p className="text-[11px] text-[#8696a0] leading-relaxed">
+            Need a password generator? Use this private, deterministic password extension that generates passwords on-the-fly without saving anything in the cloud.
+          </p>
+          <div className="flex items-center gap-2 pt-0.5">
+            <a
+              href="./secret-password-generator.zip"
+              download="secret-password-generator.zip"
+              className="flex-1 py-1.5 px-2.5 bg-[#00a884]/15 hover:bg-[#00a884]/25 text-[#00a884] border border-[#00a884]/40 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download (.zip)</span>
+            </a>
+            <button
+              type="button"
+              onClick={() => setShowExtensionModal(true)}
+              className="py-1.5 px-2.5 bg-[#202c33] hover:bg-[#2a3942] text-gray-300 border border-[#2a3942] rounded-lg text-xs font-medium transition-colors cursor-pointer"
+            >
+              How to Install
+            </button>
+          </div>
+        </div>
+
+        <div className="mt-4 flex items-center gap-1.5 text-[11px] text-[#8696a0]">
           <ShieldCheck className="w-3.5 h-3.5 text-[#00a884]" />
           <span>Secured client-side with AES-GCM 256-bit encryption</span>
         </div>
       </div>
+
+      {/* Extension Installation Guide Modal */}
+      {showExtensionModal && (
+        <div
+          onClick={() => setShowExtensionModal(false)}
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-4 select-none text-[#e9edef] cursor-pointer"
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            className="bg-[#202c33] rounded-2xl max-w-md w-full border border-[#2a3942] shadow-2xl p-6 space-y-4 cursor-default text-left"
+          >
+            <div className="flex items-center justify-between border-b border-[#2a3942] pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🔐</span>
+                <h3 className="font-semibold text-base text-[#e9edef]">Secret Password Generator</h3>
+              </div>
+              <button
+                onClick={() => setShowExtensionModal(false)}
+                className="w-8 h-8 rounded-full hover:bg-white/10 flex items-center justify-center text-[#8696a0] hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <p className="text-xs text-[#8696a0] leading-relaxed">
+              A private, deterministic password generator Chrome extension. It uses 600,000 PBKDF2 iterations to produce a 12-character password derived locally from your personal secret word.
+            </p>
+
+            <div className="space-y-2.5 text-xs text-gray-300">
+              <h4 className="font-semibold text-[#00a884] uppercase tracking-wider text-[11px]">
+                How to Install in 3 Easy Steps:
+              </h4>
+              <div className="bg-[#111b21] p-3 rounded-lg space-y-2">
+                <p>
+                  <strong>1. Download Archive:</strong> Click the button below to download <code className="text-[#00a884]">secret-password-generator.zip</code> and extract/unzip it on your computer.
+                </p>
+                <p>
+                  <strong>2. Open Extensions:</strong> Open Chrome/Brave/Edge and navigate to <code className="text-[#00a884]">chrome://extensions</code>.
+                </p>
+                <p>
+                  <strong>3. Load Unpacked:</strong> Toggle on <strong>"Developer mode"</strong> in the top-right corner, click <strong>"Load unpacked"</strong>, and select the unzipped folder.
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+              <a
+                href="./secret-password-generator.zip"
+                download="secret-password-generator.zip"
+                className="flex-1 py-2 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors text-center"
+              >
+                <Download className="w-4 h-4" />
+                <span>Download Extension (.zip)</span>
+              </a>
+              <a
+                href="https://github.com/Siddhu-123/whatsapp-clone/tree/main/extension"
+                target="_blank"
+                rel="noreferrer"
+                className="py-2 px-3 bg-[#111b21] hover:bg-[#202c33] border border-[#2a3942] text-gray-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>View on GitHub</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

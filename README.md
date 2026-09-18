@@ -9,23 +9,40 @@
 ---
 
 ## 📑 Table of Contents
-1. [Why Use This App?](#-why-use-this-app)
-2. [How to Export Your WhatsApp Chats](#-how-to-export-your-whatsapp-chats)
+1. [Companion Extension: Secret Password Generator](#-companion-extension-secret-password-generator)
+2. [Why Use This App?](#-why-use-this-app)
+3. [How to Export Your WhatsApp Chats](#-how-to-export-your-whatsapp-chats)
    - [Exporting on Android](#-exporting-on-android)
    - [Exporting on iPhone (iOS)](#-exporting-on-iphone-ios)
    - [Creating a Master Multi-Chat Archive (`whatsapp_exports.zip`)](#-creating-a-master-multi-chat-archive)
-3. [How to Use the App](#-how-to-use-the-app)
-   - [Step 1: Open the App](#step-1-open-the-app)
-   - [Step 2: Connect Your Zip Archive](#step-2-connect-your-zip-archive)
-   - [Step 3: Unlock Your Chats](#step-3-unlock-your-chats)
-   - [Step 4: Browse, Search & Play Media](#step-4-browse-search--play-media)
-4. [Key Features](#-key-features)
-   - [Global File & Media Search](#-global-file--media-search)
-   - [WhatsApp-Style Manage Storage](#-whatsapp-style-manage-storage)
-   - [Voice Note Player (.opus)](#-voice-note-player-opus)
-   - [Multi-Device Responsive Design](#-multi-device-responsive-design)
-5. [Privacy & Cryptographic Security](#-privacy--cryptographic-security)
-6. [Local Development & Deployment](#-local-development--deployment)
+4. [How to Use the App](#-how-to-use-the-app)
+5. [Key Features](#-key-features)
+6. [Privacy & Cryptographic Security](#-privacy--cryptographic-security)
+7. [Local Development & Deployment](#-local-development--deployment)
+
+---
+
+## 🔐 Companion Extension: Secret Password Generator
+
+Enhance your security with the official companion **Secret Password Generator** Chrome extension!
+
+Instead of saving passwords in vulnerable cloud vaults or reusing passwords across sites, this lightweight browser extension generates fixed, deterministic 12-character passwords on-the-fly using only your personal secret word.
+
+* 🐱 **Zero Cloud / Zero Password Storage**: Neither your master secret nor your site passwords are ever saved anywhere. No databases to hack.
+* 🛡️ **Cryptographic KDF**: Uses **PBKDF2 with 600,000 iterations** to derive secure, unguessable passwords locally in your browser.
+* 🎭 **Crying Cat Masking**: Passwords are masked with crying cats by default so nobody can shoulder-surf your screen. Long-press to temporarily reveal.
+* ⏱️ **Auto-Wipe Security**: Secrets clear from memory after 20 seconds, and copied passwords automatically clear from the clipboard.
+
+### 📦 Get the Extension
+* ⬇️ **Direct Extension Download**: [**Download `secret-password-generator.zip`**](https://siddhu-123.github.io/whatsapp-clone/secret-password-generator.zip)
+* 💻 **Extension Source Code**: [**View on GitHub (`extension/`)**](https://github.com/Siddhu-123/whatsapp-clone/tree/main/extension)
+
+#### 🛠️ How to Install in 30 Seconds (Chrome, Brave, Edge, Arc):
+1. [Download `secret-password-generator.zip`](https://siddhu-123.github.io/whatsapp-clone/secret-password-generator.zip) and unzip/extract it on your computer.
+2. In your browser address bar, open `chrome://extensions` (or `edge://extensions`, `brave://extensions`).
+3. Turn on the **"Developer mode"** toggle in the top-right corner.
+4. Click **"Load unpacked"** and select the unzipped extension folder.
+5. Click the extension icon in your browser toolbar, enter your secret, and generate your WhatsApp clone password!
 
 ---
 

@@ -9,7 +9,9 @@ import {
   Palette,
   HelpCircle,
   FolderSync,
-  Lock
+  Lock,
+  Download,
+  ExternalLink
 } from 'lucide-react';
 import { SecurityConfig, ChatContact } from '../types/chat';
 import { resetSecurityConfig } from '../services/crypto';
@@ -329,6 +331,44 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <p className="text-[#8696a0] leading-relaxed">
                     Zero network requests are made with your messages, media, or passwords. Everything runs strictly in your local Mac browser.
                   </p>
+                </div>
+
+                {/* Secret Password Generator Extension Spotlight Card */}
+                <div className="bg-[#111b21] p-4 rounded-xl border border-[#00a884]/40 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xl">🔐</span>
+                      <h4 className="text-sm font-semibold text-[#e9edef]">
+                        Secret Password Generator
+                      </h4>
+                    </div>
+                    <span className="text-[10px] bg-[#00a884]/20 text-[#00a884] font-medium px-2.5 py-0.5 rounded-full">
+                      Free Extension
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#8696a0] leading-relaxed">
+                    A private deterministic password generator Chrome extension. Derives 12-character passwords on-the-fly using 600,000 PBKDF2 rounds, crying cat masking, and 20-second clipboard clearing with zero cloud storage.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row gap-2 pt-1">
+                    <a
+                      href="./secret-password-generator.zip"
+                      download="secret-password-generator.zip"
+                      className="flex-1 py-2 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download Extension (.zip)</span>
+                    </a>
+                    <a
+                      href="https://github.com/Siddhu-123/whatsapp-clone/tree/main/extension"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="py-2 px-3 bg-[#202c33] hover:bg-[#2a3942] border border-[#2a3942] text-gray-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>View on GitHub</span>
+                    </a>
+                  </div>
                 </div>
               </div>
             )}
