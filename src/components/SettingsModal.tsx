@@ -354,7 +354,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     <a
                       href="https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal"
                       target="_blank"
-                      rel="noreferrer"
+                      rel="noopener noreferrer"
                       className="flex-1 py-2 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center shadow"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />

@@ -25,6 +25,7 @@ import {
   ParseProgress,
   clearMediaCache,
   getCachedChats,
+  saveCachedChats,
   clearCachedChats,
   ensureZipMediaConnected
 } from './services/zipParser';
@@ -137,6 +138,10 @@ export const App: React.FC = () => {
       if (securityConfig && !isLocked && isSessionUnlocked()) {
         const shouldLock = checkAutoLock(securityConfig.autoLockMinutes || 15);
         if (shouldLock) {
+          lockSession();
+          clearMediaCache();
+          setChats([]);
+          setActiveChatId(null);
           setIsLocked(true);
         }
       }
@@ -157,8 +162,16 @@ export const App: React.FC = () => {
     const updatedSec = await getSecurityConfig();
     setSecurityConfig(updatedSec);
 
-    // If chats aren't loaded yet, try cached chats first, or read from Mac linked file
-    if (chats.length === 0) {
+    // If chats were already in memory (e.g. freshly imported before setting password)
+    // encrypt them immediately to IndexedDB under the new AES key!
+    if (chats.length > 0) {
+      await saveCachedChats({
+        chats,
+        detectedOwnerName: ownerName,
+        totalMessages: chats.reduce((acc, c) => acc + c.messages.length, 0)
+      });
+    } else {
+      // Restore chats from encrypted IndexedDB cache
       const cached = await getCachedChats();
       if (cached && cached.chats.length > 0) {
         setChats(cached.chats);
@@ -218,6 +231,9 @@ export const App: React.FC = () => {
 
   const handleManualLock = () => {
     lockSession();
+    clearMediaCache();
+    setChats([]);
+    setActiveChatId(null);
     setIsLocked(true);
   };
 

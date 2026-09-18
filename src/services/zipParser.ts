@@ -3,8 +3,38 @@ import { get, set, del } from 'idb-keyval';
 import { ChatContact, ParsedWhatsAppExport } from '../types/chat';
 import { parseChatText, getMimeTypeFromFilename } from './chatParser';
 import { getSavedMacZipHandle, readMacZipFile, verifyHandlePermission } from './fileStorage';
+import { encryptWithActiveKey, decryptWithActiveKey, getSecurityConfig } from './crypto';
 
 const CACHED_CHATS_KEY = 'wa_cached_chats_data_v1';
+
+interface CachedChatsPayload {
+  version: 2;
+  isEncrypted: boolean;
+  iv?: string;
+  data?: string;
+  chats?: any[];
+  detectedOwnerName?: string;
+  totalMessages?: number;
+}
+
+/**
+ * Defend against Zip Slip, Directory Traversal, and Control Character Injections.
+ * Strips directory prefixes ('../', '..\', absolute paths), null bytes, and control chars.
+ */
+export function sanitizeArchiveFileName(rawPath: string): string {
+  if (!rawPath) return 'attachment';
+  // Normalize Windows backslashes to forward slashes
+  const normalized = rawPath.replace(/\\/g, '/');
+  // Extract strictly the basename / leaf name
+  const leaf = normalized.split('/').filter(Boolean).pop() || '';
+  // Strip path traversal sequences, null bytes, and non-printable control characters
+  const sanitized = leaf
+    .replace(/\.\./g, '')
+    .replace(/[\x00-\x1f\x7f]/g, '')
+    .trim();
+
+  return sanitized || 'attachment';
+}
 
 // In-memory cache for extracted media blob URLs
 const mediaBlobUrlCache = new Map<string, string>();
@@ -35,11 +65,35 @@ export async function saveCachedChats(data: ParsedWhatsAppExport): Promise<void>
       ...c,
       mediaFiles: {}
     }));
-    await set(CACHED_CHATS_KEY, {
+
+    const plainPayload = JSON.stringify({
       chats: serializableChats,
       detectedOwnerName: data.detectedOwnerName,
       totalMessages: data.totalMessages
     });
+
+    const secConfig = await getSecurityConfig();
+    if (secConfig && secConfig.isConfigured) {
+      const encrypted = await encryptWithActiveKey(plainPayload);
+      if (encrypted) {
+        await set(CACHED_CHATS_KEY, {
+          version: 2,
+          isEncrypted: true,
+          iv: encrypted.iv,
+          data: encrypted.ciphertext
+        } as CachedChatsPayload);
+        return;
+      }
+    }
+
+    // Unencrypted cache fallback (only when security lock is not set)
+    await set(CACHED_CHATS_KEY, {
+      version: 2,
+      isEncrypted: false,
+      chats: serializableChats,
+      detectedOwnerName: data.detectedOwnerName,
+      totalMessages: data.totalMessages
+    } as CachedChatsPayload);
   } catch (err) {
     console.warn('Failed to cache parsed chats in storage:', err);
   }
@@ -47,11 +101,34 @@ export async function saveCachedChats(data: ParsedWhatsAppExport): Promise<void>
 
 export async function getCachedChats(): Promise<ParsedWhatsAppExport | null> {
   try {
-    const data = await get<any>(CACHED_CHATS_KEY);
-    if (!data || !data.chats || data.chats.length === 0) return null;
+    const payload = await get<any>(CACHED_CHATS_KEY);
+    if (!payload) return null;
+
+    let exportData: ParsedWhatsAppExport | null = null;
+
+    // Handle v2 encrypted payload
+    if (payload.isEncrypted && payload.data && payload.iv) {
+      const decryptedJson = await decryptWithActiveKey(payload.data, payload.iv);
+      if (!decryptedJson) {
+        // Locked session or key not yet derived - do not expose plaintext
+        return null;
+      }
+      try {
+        exportData = JSON.parse(decryptedJson);
+      } catch {
+        return null;
+      }
+    } else if (payload.chats) {
+      // Unencrypted payload (v1 legacy or v2 unencrypted)
+      exportData = payload as ParsedWhatsAppExport;
+    }
+
+    if (!exportData || !exportData.chats || exportData.chats.length === 0) {
+      return null;
+    }
 
     // Restore Date objects
-    for (const chat of data.chats) {
+    for (const chat of exportData.chats) {
       if (chat.lastMessage && chat.lastMessage.timestamp) {
         chat.lastMessage.timestamp = new Date(chat.lastMessage.timestamp);
       }
@@ -59,7 +136,7 @@ export async function getCachedChats(): Promise<ParsedWhatsAppExport | null> {
         msg.timestamp = new Date(msg.timestamp);
       }
     }
-    return data as ParsedWhatsAppExport;
+    return exportData;
   } catch (err) {
     console.warn('Failed to load cached chats from storage:', err);
     return null;
@@ -100,13 +177,13 @@ export async function ensureZipMediaConnected(file?: File): Promise<void> {
       if (nestedZipEntries.length > 0) {
         let completed = 0;
         for (const zipItem of nestedZipEntries) {
-          const fileName = zipItem.path.split('/').pop() || zipItem.path;
+          const fileName = sanitizeArchiveFileName(zipItem.path);
           const chatTitle = fileName
             .replace(/\.zip$/i, '')
             .replace(/^WhatsApp Chat with\s+/i, '')
             .replace(/^WhatsApp Chat -\s+/i, '')
             .trim();
-          const chatId = `chat-sub-${completed}-${chatTitle.replace(/\s+/g, '_')}`;
+          const chatId = `chat-sub-${completed}-${chatTitle.replace(/[^a-zA-Z0-9_\-]/g, '_')}`;
 
           try {
             const innerBytes = await zipItem.entry.async('uint8array');
@@ -114,7 +191,7 @@ export async function ensureZipMediaConnected(file?: File): Promise<void> {
             const mediaEntries: Record<string, JSZip.JSZipObject> = {};
             innerZip.forEach((relPath, item) => {
               if (!item.dir && !relPath.startsWith('__MACOSX/') && !relPath.includes('/._')) {
-                const leafName = relPath.split('/').pop() || relPath;
+                const leafName = sanitizeArchiveFileName(relPath);
                 if (!leafName.toLowerCase().endsWith('.txt')) {
                   mediaEntries[leafName.toLowerCase()] = item;
                 }
@@ -129,16 +206,16 @@ export async function ensureZipMediaConnected(file?: File): Promise<void> {
       } else if (directTextEntries.length > 0) {
         const mediaEntries: Record<string, JSZip.JSZipObject> = {};
         allEntries.forEach(e => {
-          const leafName = e.path.split('/').pop() || e.path;
+          const leafName = sanitizeArchiveFileName(e.path);
           if (!leafName.toLowerCase().endsWith('.txt')) {
             mediaEntries[leafName.toLowerCase()] = e.entry;
           }
         });
         let index = 0;
         for (const txtEntry of directTextEntries) {
-          const fileName = txtEntry.path.split('/').pop() || txtEntry.path;
+          const fileName = sanitizeArchiveFileName(txtEntry.path);
           const chatTitle = fileName.replace(/\.txt$/i, '').replace(/^WhatsApp Chat with\s+/i, '').trim();
-          const chatId = `chat-dir-${index}-${chatTitle.replace(/\s+/g, '_')}`;
+          const chatId = `chat-dir-${index}-${chatTitle.replace(/[^a-zA-Z0-9_\-]/g, '_')}`;
           activeChatZipHolders.set(chatId, { entries: mediaEntries });
           index++;
         }
@@ -153,7 +230,8 @@ export async function ensureZipMediaConnected(file?: File): Promise<void> {
 
 // Lazy load media blob URL for a specific chat and file
 export async function getMediaBlobUrl(chatId: string, fileName: string): Promise<string | null> {
-  const cacheKey = `${chatId}::${fileName.toLowerCase()}`;
+  const safeFileName = sanitizeArchiveFileName(fileName);
+  const cacheKey = `${chatId}::${safeFileName.toLowerCase()}`;
   if (mediaBlobUrlCache.has(cacheKey)) {
     return mediaBlobUrlCache.get(cacheKey)!;
   }
@@ -167,11 +245,11 @@ export async function getMediaBlobUrl(chatId: string, fileName: string): Promise
 
   if (!holder) return null;
 
-  let zipObj: JSZip.JSZipObject | undefined = holder.entries[fileName.toLowerCase()];
+  let zipObj: JSZip.JSZipObject | undefined = holder.entries[safeFileName.toLowerCase()];
 
   if (!zipObj) {
     // Try relaxed search (e.g. without extension or sanitized)
-    const baseTarget = fileName.replace(/\.[^/.]+$/, "").toLowerCase();
+    const baseTarget = safeFileName.replace(/\.[^/.]+$/, "").toLowerCase();
     for (const [key, entry] of Object.entries(holder.entries)) {
       if (key.includes(baseTarget) || baseTarget.includes(key.replace(/\.[^/.]+$/, ""))) {
         zipObj = entry;
@@ -230,14 +308,14 @@ export async function parseWhatsAppZip(
     let completed = 0;
 
     for (const zipItem of nestedZipEntries) {
-      const fileName = zipItem.path.split('/').pop() || zipItem.path;
+      const fileName = sanitizeArchiveFileName(zipItem.path);
       const chatTitle = fileName
         .replace(/\.zip$/i, '')
         .replace(/^WhatsApp Chat with\s+/i, '')
         .replace(/^WhatsApp Chat -\s+/i, '')
         .trim();
 
-      const chatId = `chat-sub-${completed}-${chatTitle.replace(/\s+/g, '_')}`;
+      const chatId = `chat-sub-${completed}-${chatTitle.replace(/[^a-zA-Z0-9_\-]/g, '_')}`;
 
       onProgress?.({
         status: `Reading ${chatTitle}...`,
@@ -256,7 +334,7 @@ export async function parseWhatsAppZip(
 
         innerZip.forEach((relPath, item) => {
           if (!item.dir && !relPath.startsWith('__MACOSX/') && !relPath.includes('/._')) {
-            const leafName = relPath.split('/').pop() || relPath;
+            const leafName = sanitizeArchiveFileName(relPath);
             if (leafName.toLowerCase().endsWith('.txt')) {
               txtItem = item;
             } else {
@@ -304,7 +382,7 @@ export async function parseWhatsAppZip(
     const mediaEntries: Record<string, JSZip.JSZipObject> = {};
 
     allEntries.forEach(e => {
-      const leafName = e.path.split('/').pop() || e.path;
+      const leafName = sanitizeArchiveFileName(e.path);
       if (!leafName.toLowerCase().endsWith('.txt')) {
         mediaEntries[leafName.toLowerCase()] = e.entry;
       }
@@ -312,14 +390,14 @@ export async function parseWhatsAppZip(
 
     let index = 0;
     for (const txtEntry of directTextEntries) {
-      const fileName = txtEntry.path.split('/').pop() || txtEntry.path;
+      const fileName = sanitizeArchiveFileName(txtEntry.path);
       const chatTitle = fileName
         .replace(/\.txt$/i, '')
         .replace(/^WhatsApp Chat with\s+/i, '')
         .replace(/^WhatsApp Chat -\s+/i, '')
         .trim();
 
-      const chatId = `chat-dir-${index}-${chatTitle.replace(/\s+/g, '_')}`;
+      const chatId = `chat-dir-${index}-${chatTitle.replace(/[^a-zA-Z0-9_\-]/g, '_')}`;
       const chatText = await txtEntry.entry.async('string');
       const { messages, participants } = parseChatText(chatId, chatText, chatTitle);
 

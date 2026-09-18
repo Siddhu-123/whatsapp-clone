@@ -168,7 +168,7 @@ export const GlobalFileSearch: React.FC<GlobalFileSearchProps> = ({
       if (url) {
         const a = document.createElement('a');
         a.href = url;
-        a.download = file.fileName;
+        a.download = file.fileName.replace(/^.*[\\\/]/, '').replace(/[\x00-\x1f\x7f]/g, '').trim() || 'download';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);

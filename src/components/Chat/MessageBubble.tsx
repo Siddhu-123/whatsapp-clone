@@ -224,7 +224,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 {mediaUrl && (
                   <a
                     href={mediaUrl}
-                    download={attachment.fileName}
+                    download={attachment.fileName.replace(/^.*[\\\/]/, '').trim() || 'contact.vcf'}
                     className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
                     title="Download Contact"
                   >
@@ -247,7 +247,7 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 {mediaUrl && (
                   <a
                     href={mediaUrl}
-                    download={attachment.fileName}
+                    download={attachment.fileName.replace(/^.*[\\\/]/, '').trim() || 'document'}
                     className="p-1.5 hover:bg-white/10 rounded-full transition-colors"
                     title="Download Document"
                   >

@@ -44,6 +44,7 @@ export interface SecurityConfig {
   iv: string;
   encryptedVerification: string;
   autoLockMinutes: number;
+  iterations?: number;
 }
 
 export interface FileHandleMetadata {

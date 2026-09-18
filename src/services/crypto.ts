@@ -1,19 +1,16 @@
 import { get, set, del } from 'idb-keyval';
+import { SecurityConfig } from '../types/chat';
 
 const SECURITY_CONFIG_KEY = 'wa_security_config_v1';
 const AUTH_VERIFICATION_PAYLOAD = 'WHATSAPP_CLONE_SECURE_AUTH_V1';
 const SESSION_UNLOCKED_KEY = 'wa_session_unlocked_v1';
+const SESSION_KEY_STORAGE = 'wa_session_key_v1';
 const DEVICE_REMEMBER_KEY = 'wa_device_remember_v1';
+const DEVICE_KEY_STORAGE = 'wa_device_key_v1';
 const LAST_ACTIVITY_KEY = 'wa_last_activity_v1';
-const PBKDF2_ITERATIONS = 150000;
+const PBKDF2_ITERATIONS = 300000;
 
-export interface SecurityConfig {
-  isConfigured: boolean;
-  salt: string; // Base64 salt for PBKDF2
-  iv: string;   // Base64 IV for AES-GCM
-  encryptedVerification: string; // Base64 ciphertext of verification token
-  autoLockMinutes: number;
-}
+export type { SecurityConfig };
 
 let activeSessionKey: CryptoKey | null = null;
 let lastActivityTimestamp = Date.now();
@@ -35,7 +32,11 @@ export function base64ToUint8(base64: string): Uint8Array {
   return bytes;
 }
 
-async function deriveAesGcmKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveAesGcmKey(
+  password: string,
+  salt: Uint8Array,
+  iterations: number = PBKDF2_ITERATIONS
+): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -49,14 +50,94 @@ async function deriveAesGcmKey(password: string, salt: Uint8Array): Promise<Cryp
     {
       name: 'PBKDF2',
       salt: salt as any,
-      iterations: PBKDF2_ITERATIONS,
+      iterations,
       hash: 'SHA-256'
     },
     keyMaterial,
     { name: 'AES-GCM', length: 256 },
-    false,
+    true, // Extractable so session key can survive tab refreshes in sessionStorage
     ['encrypt', 'decrypt']
   );
+}
+
+async function persistActiveKey(key: CryptoKey, rememberOnDevice = true): Promise<void> {
+  try {
+    const raw = await crypto.subtle.exportKey('raw', key);
+    const keyB64 = uint8ToBase64(new Uint8Array(raw));
+    sessionStorage.setItem(SESSION_KEY_STORAGE, keyB64);
+    if (rememberOnDevice) {
+      localStorage.setItem(DEVICE_KEY_STORAGE, keyB64);
+    }
+  } catch (err) {
+    console.warn('Failed to persist session key:', err);
+  }
+}
+
+export async function getOrRestoreActiveKey(): Promise<CryptoKey | null> {
+  if (activeSessionKey) return activeSessionKey;
+
+  try {
+    const keyB64 =
+      sessionStorage.getItem(SESSION_KEY_STORAGE) ||
+      localStorage.getItem(DEVICE_KEY_STORAGE);
+    if (!keyB64) return null;
+
+    const raw = base64ToUint8(keyB64);
+    const key = await crypto.subtle.importKey(
+      'raw',
+      raw as any,
+      { name: 'AES-GCM' },
+      true,
+      ['encrypt', 'decrypt']
+    );
+    activeSessionKey = key;
+    return key;
+  } catch (err) {
+    console.warn('Failed to restore active key:', err);
+    return null;
+  }
+}
+
+export async function encryptWithActiveKey(
+  plaintext: string
+): Promise<{ ciphertext: string; iv: string } | null> {
+  const key = await getOrRestoreActiveKey();
+  if (!key) return null;
+
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const enc = new TextEncoder();
+  const ciphertextBuffer = await crypto.subtle.encrypt(
+    { name: 'AES-GCM', iv: iv as any },
+    key,
+    enc.encode(plaintext)
+  );
+
+  return {
+    ciphertext: uint8ToBase64(new Uint8Array(ciphertextBuffer)),
+    iv: uint8ToBase64(iv)
+  };
+}
+
+export async function decryptWithActiveKey(
+  ciphertext: string,
+  iv: string
+): Promise<string | null> {
+  const key = await getOrRestoreActiveKey();
+  if (!key) return null;
+
+  try {
+    const cipherBytes = base64ToUint8(ciphertext);
+    const ivBytes = base64ToUint8(iv);
+    const decryptedBuffer = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: ivBytes as any },
+      key,
+      cipherBytes as any
+    );
+    return new TextDecoder().decode(decryptedBuffer);
+  } catch (err) {
+    console.warn('Failed to decrypt data with active key:', err);
+    return null;
+  }
 }
 
 export async function getSecurityConfig(): Promise<SecurityConfig | null> {
@@ -129,6 +210,13 @@ export async function checkSessionRestoration(): Promise<boolean> {
       }
     }
 
+    // Attempt restoring active session key
+    const restoredKey = await getOrRestoreActiveKey();
+    if (!restoredKey) {
+      lockSession();
+      return false;
+    }
+
     // Session is valid and restored
     updateActivity();
     return true;
@@ -145,7 +233,7 @@ export async function setupSecurity(
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
 
-  const key = await deriveAesGcmKey(password, salt);
+  const key = await deriveAesGcmKey(password, salt, PBKDF2_ITERATIONS);
 
   const enc = new TextEncoder();
   const ciphertextBuffer = await crypto.subtle.encrypt(
@@ -159,11 +247,13 @@ export async function setupSecurity(
     salt: uint8ToBase64(salt),
     iv: uint8ToBase64(iv),
     encryptedVerification: uint8ToBase64(new Uint8Array(ciphertextBuffer)),
-    autoLockMinutes
+    autoLockMinutes,
+    iterations: PBKDF2_ITERATIONS
   };
 
   await saveSecurityConfig(config);
   activeSessionKey = key;
+  await persistActiveKey(key, rememberOnDevice);
   markSessionUnlocked(rememberOnDevice);
   return config;
 }
@@ -181,24 +271,31 @@ export async function authenticate(
   const iv = base64ToUint8(config.iv);
   const encrypted = base64ToUint8(config.encryptedVerification);
 
-  try {
-    const key = await deriveAesGcmKey(password, salt);
-    const decryptedBuffer = await crypto.subtle.decrypt(
-      { name: 'AES-GCM', iv: iv as any },
-      key,
-      encrypted as any
-    );
-    const dec = new TextDecoder();
-    const decryptedText = dec.decode(decryptedBuffer);
+  // Try configured iterations or legacy fallback
+  const iterAttempts = [config.iterations || PBKDF2_ITERATIONS, 150000];
 
-    if (decryptedText === AUTH_VERIFICATION_PAYLOAD) {
-      activeSessionKey = key;
-      markSessionUnlocked(rememberOnDevice);
-      return true;
+  for (const iters of iterAttempts) {
+    try {
+      const key = await deriveAesGcmKey(password, salt, iters);
+      const decryptedBuffer = await crypto.subtle.decrypt(
+        { name: 'AES-GCM', iv: iv as any },
+        key,
+        encrypted as any
+      );
+      const dec = new TextDecoder();
+      const decryptedText = dec.decode(decryptedBuffer);
+
+      if (decryptedText === AUTH_VERIFICATION_PAYLOAD) {
+        activeSessionKey = key;
+        await persistActiveKey(key, rememberOnDevice);
+        markSessionUnlocked(rememberOnDevice);
+        return true;
+      }
+    } catch {
+      // Continue to next attempt
     }
-  } catch {
-    // Decryption failed = invalid password
   }
+
   return false;
 }
 
@@ -213,9 +310,11 @@ export function isSessionUnlocked(): boolean {
 export function lockSession(): void {
   activeSessionKey = null;
   try {
+    sessionStorage.removeItem(SESSION_KEY_STORAGE);
     sessionStorage.removeItem(SESSION_UNLOCKED_KEY);
-    localStorage.removeItem(DEVICE_REMEMBER_KEY);
     sessionStorage.removeItem(LAST_ACTIVITY_KEY);
+    localStorage.removeItem(DEVICE_KEY_STORAGE);
+    localStorage.removeItem(DEVICE_REMEMBER_KEY);
     localStorage.removeItem(LAST_ACTIVITY_KEY);
   } catch {
     // ignore
