@@ -28,21 +28,22 @@ Enhance your security with the official companion **Secret Password Generator** 
 
 Instead of saving passwords in vulnerable cloud vaults or reusing passwords across sites, this lightweight browser extension generates fixed, deterministic 12-character passwords on-the-fly using only your personal secret word.
 
+* 🛒 **Available on the Chrome Web Store**: [**Get Secret Password Generator on Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal)
 * 🐱 **Zero Cloud / Zero Password Storage**: Neither your master secret nor your site passwords are ever saved anywhere. No databases to hack.
 * 🛡️ **Cryptographic KDF**: Uses **PBKDF2 with 600,000 iterations** to derive secure, unguessable passwords locally in your browser.
 * 🎭 **Crying Cat Masking**: Passwords are masked with crying cats by default so nobody can shoulder-surf your screen. Long-press to temporarily reveal.
 * ⏱️ **Auto-Wipe Security**: Secrets clear from memory after 20 seconds, and copied passwords automatically clear from the clipboard.
 
 ### 📦 Get the Extension
-* ⬇️ **Direct Extension Download**: [**Download `secret-password-generator.zip`**](https://siddhu-123.github.io/whatsapp-clone/secret-password-generator.zip)
+* 🛒 **Chrome Web Store (1-Click Install)**: [**Secret Password Generator on Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal)
+* ⬇️ **Offline Zip Download**: [**Download `secret-password-generator.zip`**](https://siddhu-123.github.io/whatsapp-clone/secret-password-generator.zip)
 * 💻 **Extension Source Code**: [**View on GitHub (`extension/`)**](https://github.com/Siddhu-123/whatsapp-clone/tree/main/extension)
 
-#### 🛠️ How to Install in 30 Seconds (Chrome, Brave, Edge, Arc):
-1. [Download `secret-password-generator.zip`](https://siddhu-123.github.io/whatsapp-clone/secret-password-generator.zip) and unzip/extract it on your computer.
-2. In your browser address bar, open `chrome://extensions` (or `edge://extensions`, `brave://extensions`).
-3. Turn on the **"Developer mode"** toggle in the top-right corner.
-4. Click **"Load unpacked"** and select the unzipped extension folder.
-5. Click the extension icon in your browser toolbar, enter your secret, and generate your WhatsApp clone password!
+#### 🛠️ How to Use with WhatsApp Web:
+1. Install [**Secret Password Generator from the Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal).
+2. Click the extension icon in your browser toolbar and enter your secret word.
+3. Click the crying cat masked password to copy your 12-character deterministic password.
+4. Paste it into the WhatsApp Web clone lock screen to unlock your chats!
 
 ---
 

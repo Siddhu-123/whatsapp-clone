@@ -352,21 +352,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   <div className="flex flex-col sm:flex-row gap-2 pt-1">
                     <a
-                      href="./secret-password-generator.zip"
-                      download="secret-password-generator.zip"
-                      className="flex-1 py-2 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Download Extension (.zip)</span>
-                    </a>
-                    <a
-                      href="https://github.com/Siddhu-123/whatsapp-clone/tree/main/extension"
+                      href="https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal"
                       target="_blank"
                       rel="noreferrer"
-                      className="py-2 px-3 bg-[#202c33] hover:bg-[#2a3942] border border-[#2a3942] text-gray-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                      className="flex-1 py-2 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer text-center shadow"
                     >
                       <ExternalLink className="w-3.5 h-3.5" />
-                      <span>View on GitHub</span>
+                      <span>Chrome Web Store</span>
+                    </a>
+                    <a
+                      href="./secret-password-generator.zip"
+                      download="secret-password-generator.zip"
+                      className="py-2 px-3 bg-[#202c33] hover:bg-[#2a3942] border border-[#2a3942] text-gray-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors"
+                      title="Download offline zip"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download (.zip)</span>
                     </a>
                   </div>
                 </div>

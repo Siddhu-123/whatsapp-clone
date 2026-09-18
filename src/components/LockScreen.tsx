@@ -163,34 +163,35 @@ export const LockScreen: React.FC<LockScreenProps> = ({
         </form>
 
         {/* Secret Password Generator Extension Spotlight Card */}
-        <div className="w-full mt-5 p-3.5 bg-[#111b21] rounded-xl border border-[#00a884]/30 text-left space-y-2.5">
+        <div className="w-full mt-5 p-3.5 bg-[#111b21] rounded-xl border border-[#00a884]/40 text-left space-y-2.5">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-base">🔐</span>
               <span className="text-xs font-semibold text-[#e9edef]">Secret Password Generator</span>
             </div>
             <span className="text-[10px] bg-[#00a884]/20 text-[#00a884] font-medium px-2 py-0.5 rounded-full">
-              Browser Extension
+              Chrome Web Store
             </span>
           </div>
           <p className="text-[11px] text-[#8696a0] leading-relaxed">
-            Need a password generator? Use this private, deterministic password extension that generates passwords on-the-fly without saving anything in the cloud.
+            Generate your 12-character master secret password on-the-fly using the official Chrome extension. Zero cloud storage.
           </p>
           <div className="flex items-center gap-2 pt-0.5">
             <a
-              href="./secret-password-generator.zip"
-              download="secret-password-generator.zip"
-              className="flex-1 py-1.5 px-2.5 bg-[#00a884]/15 hover:bg-[#00a884]/25 text-[#00a884] border border-[#00a884]/40 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              href="https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal"
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 py-2 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow"
             >
-              <Download className="w-3.5 h-3.5" />
-              <span>Download (.zip)</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Get on Chrome Web Store</span>
             </a>
             <button
               type="button"
               onClick={() => setShowExtensionModal(true)}
-              className="py-1.5 px-2.5 bg-[#202c33] hover:bg-[#2a3942] text-gray-300 border border-[#2a3942] rounded-lg text-xs font-medium transition-colors cursor-pointer"
+              className="py-2 px-2.5 bg-[#202c33] hover:bg-[#2a3942] text-gray-300 border border-[#2a3942] rounded-lg text-xs font-medium transition-colors cursor-pointer"
             >
-              How to Install
+              How it works
             </button>
           </div>
         </div>
@@ -225,43 +226,44 @@ export const LockScreen: React.FC<LockScreenProps> = ({
             </div>
 
             <p className="text-xs text-[#8696a0] leading-relaxed">
-              A private, deterministic password generator Chrome extension. It uses 600,000 PBKDF2 iterations to produce a 12-character password derived locally from your personal secret word.
+              The official <strong>Secret Password Generator</strong> Chrome extension derives fixed 12-character passwords locally from your secret phrase using 600,000 PBKDF2 iterations with zero passwords stored anywhere.
             </p>
 
             <div className="space-y-2.5 text-xs text-gray-300">
               <h4 className="font-semibold text-[#00a884] uppercase tracking-wider text-[11px]">
-                How to Install in 3 Easy Steps:
+                How to Use with WhatsApp Web:
               </h4>
               <div className="bg-[#111b21] p-3 rounded-lg space-y-2">
                 <p>
-                  <strong>1. Download Archive:</strong> Click the button below to download <code className="text-[#00a884]">secret-password-generator.zip</code> and extract/unzip it on your computer.
+                  <strong>1. Install:</strong> Click the button below to install directly from the official Chrome Web Store.
                 </p>
                 <p>
-                  <strong>2. Open Extensions:</strong> Open Chrome/Brave/Edge and navigate to <code className="text-[#00a884]">chrome://extensions</code>.
+                  <strong>2. Open Extension:</strong> Click the extension icon in your browser toolbar and type your personal secret word.
                 </p>
                 <p>
-                  <strong>3. Load Unpacked:</strong> Toggle on <strong>"Developer mode"</strong> in the top-right corner, click <strong>"Load unpacked"</strong>, and select the unzipped folder.
+                  <strong>3. Unlock:</strong> Click the crying cat masked password to copy, then paste it here into WhatsApp to unlock!
                 </p>
               </div>
             </div>
 
             <div className="pt-2 flex flex-col sm:flex-row gap-2">
               <a
-                href="./secret-password-generator.zip"
-                download="secret-password-generator.zip"
-                className="flex-1 py-2 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors text-center"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download Extension (.zip)</span>
-              </a>
-              <a
-                href="https://github.com/Siddhu-123/whatsapp-clone/tree/main/extension"
+                href="https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal"
                 target="_blank"
                 rel="noreferrer"
-                className="py-2 px-3 bg-[#111b21] hover:bg-[#202c33] border border-[#2a3942] text-gray-300 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                className="flex-1 py-2.5 px-3 bg-[#00a884] hover:bg-[#008f6f] text-white rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors text-center shadow"
               >
-                <ExternalLink className="w-3.5 h-3.5" />
-                <span>View on GitHub</span>
+                <ExternalLink className="w-4 h-4" />
+                <span>Add to Chrome (Official Web Store)</span>
+              </a>
+              <a
+                href="./secret-password-generator.zip"
+                download="secret-password-generator.zip"
+                className="py-2.5 px-3 bg-[#111b21] hover:bg-[#202c33] border border-[#2a3942] text-gray-300 rounded-lg text-xs font-medium flex items-center justify-center gap-1.5 transition-colors text-center"
+                title="Download offline zip"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Offline .zip</span>
               </a>
             </div>
           </div>
