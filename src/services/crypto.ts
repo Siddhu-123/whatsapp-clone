@@ -2,6 +2,9 @@ import { get, set, del } from 'idb-keyval';
 
 const SECURITY_CONFIG_KEY = 'wa_security_config_v1';
 const AUTH_VERIFICATION_PAYLOAD = 'WHATSAPP_CLONE_SECURE_AUTH_V1';
+const SESSION_UNLOCKED_KEY = 'wa_session_unlocked_v1';
+const DEVICE_REMEMBER_KEY = 'wa_device_remember_v1';
+const LAST_ACTIVITY_KEY = 'wa_last_activity_v1';
 const PBKDF2_ITERATIONS = 150000;
 
 export interface SecurityConfig {
@@ -32,7 +35,6 @@ export function base64ToUint8(base64: string): Uint8Array {
   return bytes;
 }
 
-// Derive AES-GCM 256 key from password
 async function deriveAesGcmKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
@@ -73,13 +75,72 @@ export async function saveSecurityConfig(config: SecurityConfig): Promise<void> 
 
 export async function resetSecurityConfig(): Promise<void> {
   await del(SECURITY_CONFIG_KEY);
-  activeSessionKey = null;
+  lockSession();
 }
 
-// Setup encryption with the password generated from the user's extension
+export function updateActivity(): void {
+  lastActivityTimestamp = Date.now();
+  try {
+    sessionStorage.setItem(LAST_ACTIVITY_KEY, String(lastActivityTimestamp));
+    localStorage.setItem(LAST_ACTIVITY_KEY, String(lastActivityTimestamp));
+  } catch {
+    // ignore
+  }
+}
+
+export function markSessionUnlocked(rememberOnDevice = true): void {
+  try {
+    sessionStorage.setItem(SESSION_UNLOCKED_KEY, 'true');
+    if (rememberOnDevice) {
+      localStorage.setItem(DEVICE_REMEMBER_KEY, 'true');
+    }
+    updateActivity();
+  } catch {
+    // ignore
+  }
+}
+
+export async function checkSessionRestoration(): Promise<boolean> {
+  try {
+    const config = await getSecurityConfig();
+    if (!config || !config.isConfigured) {
+      return true;
+    }
+
+    const sessionActive = sessionStorage.getItem(SESSION_UNLOCKED_KEY) === 'true';
+    const deviceRemembered = localStorage.getItem(DEVICE_REMEMBER_KEY) === 'true';
+
+    if (!sessionActive && !deviceRemembered) {
+      return false;
+    }
+
+    // Check timeout
+    const lastActiveStr =
+      sessionStorage.getItem(LAST_ACTIVITY_KEY) ||
+      localStorage.getItem(LAST_ACTIVITY_KEY);
+
+    if (lastActiveStr) {
+      const lastActive = parseInt(lastActiveStr, 10);
+      const minutesPassed = (Date.now() - lastActive) / 1000 / 60;
+      const timeout = config.autoLockMinutes || 15;
+      if (timeout > 0 && minutesPassed >= timeout) {
+        lockSession();
+        return false;
+      }
+    }
+
+    // Session is valid and restored
+    updateActivity();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export async function setupSecurity(
   password: string,
-  autoLockMinutes: number = 15
+  autoLockMinutes: number = 15,
+  rememberOnDevice: boolean = true
 ): Promise<SecurityConfig> {
   const salt = crypto.getRandomValues(new Uint8Array(16));
   const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -103,12 +164,14 @@ export async function setupSecurity(
 
   await saveSecurityConfig(config);
   activeSessionKey = key;
-  updateActivity();
+  markSessionUnlocked(rememberOnDevice);
   return config;
 }
 
-// Verify password against stored config
-export async function authenticate(password: string): Promise<boolean> {
+export async function authenticate(
+  password: string,
+  rememberOnDevice: boolean = true
+): Promise<boolean> {
   const config = await getSecurityConfig();
   if (!config || !config.isConfigured) {
     return true;
@@ -130,7 +193,7 @@ export async function authenticate(password: string): Promise<boolean> {
 
     if (decryptedText === AUTH_VERIFICATION_PAYLOAD) {
       activeSessionKey = key;
-      updateActivity();
+      markSessionUnlocked(rememberOnDevice);
       return true;
     }
   } catch {
@@ -140,15 +203,23 @@ export async function authenticate(password: string): Promise<boolean> {
 }
 
 export function isSessionUnlocked(): boolean {
-  return activeSessionKey !== null;
+  return (
+    activeSessionKey !== null ||
+    sessionStorage.getItem(SESSION_UNLOCKED_KEY) === 'true' ||
+    localStorage.getItem(DEVICE_REMEMBER_KEY) === 'true'
+  );
 }
 
 export function lockSession(): void {
   activeSessionKey = null;
-}
-
-export function updateActivity(): void {
-  lastActivityTimestamp = Date.now();
+  try {
+    sessionStorage.removeItem(SESSION_UNLOCKED_KEY);
+    localStorage.removeItem(DEVICE_REMEMBER_KEY);
+    sessionStorage.removeItem(LAST_ACTIVITY_KEY);
+    localStorage.removeItem(LAST_ACTIVITY_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 export function checkAutoLock(autoLockMinutes: number): boolean {

@@ -10,7 +10,8 @@ import {
   isSessionUnlocked,
   lockSession,
   checkAutoLock,
-  updateActivity
+  updateActivity,
+  checkSessionRestoration
 } from './services/crypto';
 import {
   getSavedMacZipHandle,
@@ -22,7 +23,10 @@ import {
 import {
   parseWhatsAppZip,
   ParseProgress,
-  clearMediaCache
+  clearMediaCache,
+  getCachedChats,
+  clearCachedChats,
+  ensureZipMediaConnected
 } from './services/zipParser';
 import { DropZone } from './components/DropZone';
 import { LockScreen } from './components/LockScreen';
@@ -82,8 +86,29 @@ export const App: React.FC = () => {
         setSecurityConfig(secConfig);
         setFileMetadata(meta);
 
-        if (secConfig && secConfig.isConfigured) {
-          // Locked by default until user enters password/secret
+        // Check if session or device was remembered
+        const isSessionRestored = await checkSessionRestoration();
+
+        if (isSessionRestored) {
+          setIsLocked(false);
+          // Try loading cached chats immediately for zero-delay refresh!
+          const cached = await getCachedChats();
+          if (cached && cached.chats.length > 0) {
+            setChats(cached.chats);
+            setOwnerName(cached.detectedOwnerName);
+            setActiveChatId(cached.chats[0].id);
+            // Reconnect zip media in background
+            ensureZipMediaConnected();
+          } else {
+            // If no cached chats but handle is saved, load from disk
+            const handle = await getSavedMacZipHandle();
+            if (handle && (await verifyHandlePermission(handle, false))) {
+              const file = await readMacZipFile(handle);
+              await processZipFile(file);
+            }
+          }
+        } else if (secConfig && secConfig.isConfigured) {
+          // Locked until user enters password
           setIsLocked(true);
         } else if (meta) {
           // Has file but no password set up yet
@@ -96,7 +121,7 @@ export const App: React.FC = () => {
       }
     };
     init();
-  }, []);
+  }, [processZipFile]);
 
   // Listen for user activity to manage auto-lock
   useEffect(() => {
@@ -131,18 +156,26 @@ export const App: React.FC = () => {
     const updatedSec = await getSecurityConfig();
     setSecurityConfig(updatedSec);
 
-    // If chats aren't loaded yet, try to load from the Mac linked file!
+    // If chats aren't loaded yet, try cached chats first, or read from Mac linked file
     if (chats.length === 0) {
-      const handle = await getSavedMacZipHandle();
-      if (handle) {
-        try {
-          const hasPerm = await verifyHandlePermission(handle, true);
-          if (hasPerm) {
-            const file = await readMacZipFile(handle);
-            await processZipFile(file);
+      const cached = await getCachedChats();
+      if (cached && cached.chats.length > 0) {
+        setChats(cached.chats);
+        setOwnerName(cached.detectedOwnerName);
+        setActiveChatId(cached.chats[0].id);
+        ensureZipMediaConnected();
+      } else {
+        const handle = await getSavedMacZipHandle();
+        if (handle) {
+          try {
+            const hasPerm = await verifyHandlePermission(handle, true);
+            if (hasPerm) {
+              const file = await readMacZipFile(handle);
+              await processZipFile(file);
+            }
+          } catch (err) {
+            console.warn('Could not read saved file handle automatically:', err);
           }
-        } catch (err) {
-          console.warn('Could not read saved file handle automatically:', err);
         }
       }
     }
@@ -187,7 +220,9 @@ export const App: React.FC = () => {
     setIsLocked(true);
   };
 
-  const handleResetAll = () => {
+  const handleResetAll = async () => {
+    await clearCachedChats();
+    lockSession();
     clearMediaCache();
     setChats([]);
     setActiveChatId(null);

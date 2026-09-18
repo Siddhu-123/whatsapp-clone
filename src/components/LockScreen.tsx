@@ -19,6 +19,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
   const isSetup = !config || !config.isConfigured;
 
   const [passwordInput, setPasswordInput] = useState('');
+  const [rememberMe, setRememberMe] = useState(true);
   const [errorMsg, setErrorMsg] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [isShaking, setIsShaking] = useState(false);
@@ -43,11 +44,11 @@ export const LockScreen: React.FC<LockScreenProps> = ({
     try {
       if (isSetup) {
         // First time: secure local storage with this password
-        await setupSecurity(trimmed, 15);
+        await setupSecurity(trimmed, 15, rememberMe);
         onUnlocked();
       } else {
         // Returning visit: verify password
-        const ok = await authenticate(trimmed);
+        const ok = await authenticate(trimmed, rememberMe);
         if (ok) {
           onUnlocked();
         } else {
@@ -78,7 +79,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
         <h1 className="text-2xl font-bold mb-1">WhatsApp is Locked</h1>
         <p className="text-xs text-[#8696a0] mb-6">
           {isSetup
-            ? 'Generate your password with your browser extension and paste it here to lock your chats.'
+            ? 'Generate your password with your browser extension and paste it here to secure your chats.'
             : 'Paste your password generated from your browser extension to unlock.'}
         </p>
 
@@ -123,6 +124,19 @@ export const LockScreen: React.FC<LockScreenProps> = ({
             <p className="text-[10px] text-[#8696a0] pt-0.5">
               Click your Secret Password extension icon in the toolbar, generate the password, and paste it here.
             </p>
+          </div>
+
+          {/* Stay signed in checkbox */}
+          <div className="flex items-center justify-between text-xs pt-1">
+            <label className="flex items-center gap-2 text-gray-300 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded text-[#00a884] accent-[#00a884] cursor-pointer"
+              />
+              <span>Keep me signed in on this Mac</span>
+            </label>
           </div>
 
           {errorMsg && (
