@@ -1,0 +1,224 @@
+import React, { useState } from 'react';
+import { ChatContact } from '../../types/chat';
+import {
+  Search,
+  Lock,
+  Settings,
+  FolderSync,
+  Users,
+  CheckCheck,
+  Image as ImageIcon,
+  Mic,
+  Video,
+  FileText,
+  X
+} from 'lucide-react';
+
+interface SidebarProps {
+  chats: ChatContact[];
+  activeChatId: string | null;
+  onSelectChat: (chatId: string) => void;
+  ownerName: string;
+  onLockApp: () => void;
+  onOpenSettings: () => void;
+  onRelinkFile: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  chats,
+  activeChatId,
+  onSelectChat,
+  ownerName,
+  onLockApp,
+  onOpenSettings,
+  onRelinkFile
+}) => {
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Filter chats by name or last message text
+  const filteredChats = chats.filter(chat => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase();
+    if (chat.name.toLowerCase().includes(term)) return true;
+    if (chat.lastMessage?.text.toLowerCase().includes(term)) return true;
+    return false;
+  });
+
+  const formatChatTime = (date?: Date): string => {
+    if (!date) return '';
+    const now = new Date();
+    const isToday =
+      date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear();
+
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isYesterday =
+      date.getDate() === yesterday.getDate() &&
+      date.getMonth() === yesterday.getMonth() &&
+      date.getFullYear() === yesterday.getFullYear();
+
+    if (isYesterday) return 'Yesterday';
+
+    return date.toLocaleDateString([], { day: '2-digit', month: '2-digit', year: '2-digit' });
+  };
+
+  const renderLastMessageSnippet = (chat: ChatContact) => {
+    const msg = chat.lastMessage;
+    if (!msg) return <span className="italic text-gray-500">No messages</span>;
+
+    if (msg.attachment && !msg.attachment.isOmitted) {
+      const type = msg.attachment.mediaType;
+      return (
+        <span className="flex items-center gap-1">
+          {type === 'image' || type === 'sticker' ? (
+            <ImageIcon className="w-3.5 h-3.5 text-gray-400" />
+          ) : type === 'audio' ? (
+            <Mic className="w-3.5 h-3.5 text-gray-400" />
+          ) : type === 'video' ? (
+            <Video className="w-3.5 h-3.5 text-gray-400" />
+          ) : (
+            <FileText className="w-3.5 h-3.5 text-gray-400" />
+          )}
+          <span className="capitalize">{type}</span>
+        </span>
+      );
+    }
+
+    return <span>{msg.text || (msg.attachment?.isOmitted ? 'Media omitted' : '')}</span>;
+  };
+
+  return (
+    <div className="w-full md:w-[380px] lg:w-[420px] h-full bg-[#111b21] border-r border-[#222d34] flex flex-col flex-shrink-0 select-none">
+      {/* Sidebar Header */}
+      <div className="h-16 px-4 bg-[#202c33] flex items-center justify-between border-b border-[#222d34]">
+        {/* User Identity / Avatar */}
+        <div
+          className="flex items-center gap-3 cursor-pointer group"
+          onClick={onOpenSettings}
+          title="Account & Identity Settings"
+        >
+          <div className="w-10 h-10 rounded-full bg-[#00a884] text-white flex items-center justify-center font-bold text-sm shadow-md group-hover:opacity-90">
+            {ownerName.slice(0, 2).toUpperCase()}
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-[#e9edef] truncate max-w-[130px] sm:max-w-[160px]">
+              {ownerName}
+            </p>
+            <p className="text-[11px] text-[#00a884] flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#00a884]"></span>
+              My WhatsApp
+            </p>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex items-center gap-1 text-[#aebac1]">
+          <button
+            onClick={onLockApp}
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            title="Lock WhatsApp (Screen Lock)"
+          >
+            <Lock className="w-5 h-5 text-gray-300" />
+          </button>
+          <button
+            onClick={onRelinkFile}
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            title="Connect / Switch Zip File"
+          >
+            <FolderSync className="w-5 h-5 text-gray-300" />
+          </button>
+          <button
+            onClick={onOpenSettings}
+            className="p-2 rounded-full hover:bg-white/10 transition-colors"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5 text-gray-300" />
+          </button>
+        </div>
+      </div>
+
+      {/* Search Bar */}
+      <div className="p-2.5 bg-[#111b21] border-b border-[#222d34]">
+        <div className="bg-[#202c33] rounded-lg px-3 py-1.5 flex items-center gap-3">
+          <Search className="w-4 h-4 text-[#8696a0]" />
+          <input
+            type="text"
+            placeholder="Search or start new chat"
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            className="flex-1 bg-transparent text-sm text-[#e9edef] outline-none placeholder-[#8696a0]"
+          />
+          {searchTerm && (
+            <button
+              onClick={() => setSearchTerm('')}
+              className="text-[#8696a0] hover:text-[#e9edef]"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Chat List */}
+      <div className="flex-1 overflow-y-auto custom-scrollbar divide-y divide-[#222d34]/40">
+        {filteredChats.length === 0 ? (
+          <div className="text-center py-16 px-4 text-[#8696a0] text-sm">
+            No chats found matching "{searchTerm}"
+          </div>
+        ) : (
+          filteredChats.map(chat => {
+            const isActive = chat.id === activeChatId;
+            return (
+              <div
+                key={chat.id}
+                onClick={() => onSelectChat(chat.id)}
+                className={`flex items-center gap-3.5 px-3.5 py-3 cursor-pointer transition-colors ${
+                  isActive
+                    ? 'bg-[#2a3942]'
+                    : 'hover:bg-[#202c33]/70 bg-[#111b21]'
+                }`}
+              >
+                {/* Contact Avatar */}
+                <div className="relative flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-[#2a3942] border border-[#3b4a54] flex items-center justify-center font-bold text-base text-[#00a884]">
+                    {chat.name.slice(0, 2).toUpperCase()}
+                  </div>
+                  {chat.isGroup && (
+                    <div className="absolute -bottom-0.5 -right-0.5 bg-[#202c33] p-1 rounded-full text-[#8696a0] border border-[#111b21]">
+                      <Users className="w-3 h-3" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Chat Title and Preview */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between mb-1">
+                    <h3 className="text-[15.5px] font-normal text-[#e9edef] truncate">
+                      {chat.name}
+                    </h3>
+                    <span className="text-[11.5px] text-[#8696a0] flex-shrink-0 ml-2">
+                      {formatChatTime(chat.lastMessage?.timestamp)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center text-[13px] text-[#8696a0] truncate">
+                    {chat.lastMessage?.isOutgoing && (
+                      <CheckCheck className="w-3.5 h-3.5 text-[#53bdeb] mr-1 flex-shrink-0" strokeWidth={2.2} />
+                    )}
+                    <div className="truncate">{renderLastMessageSnippet(chat)}</div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+};
