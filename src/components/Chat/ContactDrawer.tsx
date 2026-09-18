@@ -149,7 +149,7 @@ const MediaThumbnailItem: React.FC<{
         {blobUrl && (
           <a
             href={blobUrl}
-            download={attachment.fileName}
+            download={attachment.fileName.replace(/^.*[\\\/]/, '').trim() || 'download'}
             onClick={e => e.stopPropagation()}
             className="w-8 h-8 flex items-center justify-center hover:bg-white/10 rounded-full text-[#8696a0] hover:text-white transition-colors cursor-pointer"
             title="Download file"

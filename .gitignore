@@ -27,6 +27,5 @@ pnpm-debug.log*
 
 # Private chat exports & archives
 *.zip
-!public/secret-password-generator.zip
 whatsapp_exports*
 *.nosync

@@ -37,7 +37,7 @@ export const MediaLightbox: React.FC<MediaLightboxProps> = ({
     e.stopPropagation();
     const a = document.createElement('a');
     a.href = url;
-    a.download = fileName;
+    a.download = fileName.replace(/^.*[\\\/]/, '').trim() || 'download';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
