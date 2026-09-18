@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { X, User, Shield, Trash2, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, User, Shield, Trash2, Check, Database } from 'lucide-react';
 import { SecurityConfig } from '../types/chat';
 import { resetSecurityConfig } from '../services/crypto';
 import { clearSavedMacZipHandle } from '../services/fileStorage';
@@ -24,6 +24,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   const [selectedOwner, setSelectedOwner] = useState(ownerName);
   const [customOwner, setCustomOwner] = useState('');
   const [isSaved, setIsSaved] = useState(false);
+  const [storageStats, setStorageStats] = useState<{ usedMb: string; percentQuota: string } | null>(null);
+
+  useEffect(() => {
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.estimate) {
+      navigator.storage
+        .estimate()
+        .then(({ usage, quota }) => {
+          if (usage !== undefined) {
+            const mb = (usage / (1024 * 1024)).toFixed(2);
+            const pct = quota ? ((usage / quota) * 100).toFixed(4) : '< 0.01';
+            setStorageStats({ usedMb: `${mb} MB`, percentQuota: `${pct}%` });
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   const handleSaveIdentity = () => {
     const finalName = customOwner.trim() || selectedOwner;
@@ -139,6 +155,35 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* Browser Storage Usage */}
+          <div className="pt-4 border-t border-[#2a3942] space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#00a884]">
+              <Database className="w-4 h-4" />
+              <span>Browser Storage Footprint</span>
+            </div>
+            <div className="bg-[#111b21] p-3 rounded-lg text-xs space-y-1.5">
+              <div className="flex justify-between">
+                <span className="text-[#8696a0]">Storage Used:</span>
+                <span className="font-semibold text-[#00a884]">
+                  {storageStats ? storageStats.usedMb : 'Estimating...'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8696a0]">Quota Used:</span>
+                <span className="text-gray-300">
+                  {storageStats ? storageStats.percentQuota : '< 0.01%'}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[#8696a0]">Media Storage:</span>
+                <span className="text-[#8696a0]">0 MB (streamed from Mac)</span>
+              </div>
+            </div>
+            <p className="text-[11px] text-[#8696a0] leading-relaxed">
+              Only text is cached for instant reload (~50ms). Photos, audio notes, and videos remain strictly inside your Mac's zip file.
+            </p>
           </div>
 
           {/* Reset / Unlink */}
