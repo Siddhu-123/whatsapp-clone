@@ -29,3 +29,8 @@ pnpm-debug.log*
 *.zip
 whatsapp_exports*
 *.nosync
+
+# Local notes
+bugs.md
+.DS_Store
+.env*

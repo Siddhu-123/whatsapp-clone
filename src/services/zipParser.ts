@@ -250,10 +250,13 @@ export async function getMediaBlobUrl(chatId: string, fileName: string): Promise
   if (!zipObj) {
     // Try relaxed search (e.g. without extension or sanitized)
     const baseTarget = safeFileName.replace(/\.[^/.]+$/, "").toLowerCase();
-    for (const [key, entry] of Object.entries(holder.entries)) {
-      if (key.includes(baseTarget) || baseTarget.includes(key.replace(/\.[^/.]+$/, ""))) {
-        zipObj = entry;
-        break;
+    if (baseTarget && baseTarget.length) {
+      for (const [key, entry] of Object.entries(holder.entries)) {
+        if (!key.replace(/\.[^/.]+$/, "")) continue;
+        if (key.includes(baseTarget) || (baseTarget && baseTarget.includes(key.replace(/\.[^/.]+$/, "")))) {
+          zipObj = entry;
+          break;
+        }
       }
     }
   }
@@ -398,8 +401,18 @@ export async function parseWhatsAppZip(
         .trim();
 
       const chatId = `chat-dir-${index}-${chatTitle.replace(/[^a-zA-Z0-9_\-]/g, '_')}`;
-      const chatText = await txtEntry.entry.async('string');
-      const { messages, participants } = parseChatText(chatId, chatText, chatTitle);
+      index++;
+
+      let chatData: ReturnType<typeof parseChatText>;
+      try {
+        const chatText = await txtEntry.entry.async('string');
+        chatData = parseChatText(chatId, chatText, chatTitle);
+      } catch (err) {
+        console.warn(`Error reading or parsing chat ${txtEntry.path}:`, err);
+        continue;
+      }
+
+      const { messages, participants } = chatData;
 
       for (const p of participants) {
         senderFrequencies[p] = (senderFrequencies[p] || 0) + 1;
@@ -420,8 +433,6 @@ export async function parseWhatsAppZip(
         lastMessage: messages.length > 0 ? messages[messages.length - 1] : undefined,
         mediaFiles: mediaEntries
       });
-
-      index++;
     }
   }
 

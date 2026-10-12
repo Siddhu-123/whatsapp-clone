@@ -145,18 +145,10 @@ function parseDateTime(dateStr: string, timeStr: string): Date {
   }
 }
 
-const SYSTEM_PATTERNS = [
-  /Messages and calls are end-to-end encrypted/i,
-  /created group/i,
-  /joined using this group/i,
-  /added you/i,
-  /changed the subject/i,
-  /changed this group's icon/i,
-  /left$/i,
-  /changed their phone number/i,
-  /security code changed/i,
-  /Missed (voice|video) call/i,
-  /This message was deleted/i
+const SENDER_SYSTEM_PATTERNS = [
+  /^Messages and calls are end-to-end encrypted/i,
+  /^Your security code with .+ changed/i,
+  /^.+['’]s security code changed/i
 ];
 
 export function parseChatText(
@@ -202,14 +194,8 @@ export function parseChatText(
       if (!sender) {
         isSystem = true;
         sender = 'System';
-      } else if (SYSTEM_PATTERNS.some(p => p.test(cleanLine) || p.test(text))) {
-        if (/Missed voice call/i.test(text) || /Missed video call/i.test(text)) {
-          // Missed call
-        } else if (/This message was deleted/i.test(text)) {
-          // Deleted message
-        } else {
-          isSystem = true;
-        }
+      } else if (SENDER_SYSTEM_PATTERNS.some(p => p.test(text))) {
+        isSystem = true;
       }
 
       if (sender && !isSystem && sender !== 'System') {

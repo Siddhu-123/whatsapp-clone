@@ -125,7 +125,9 @@ export const ChatView: React.FC<ChatViewProps> = ({
             </div>
           )}
           <div
-            ref={el => (messageRefs.current[index] = el)}
+            ref={(el) => {
+              messageRefs.current[index] = el;
+            }}
             className={`transition-all duration-300 rounded-lg ${
               isTargetHighlighted
                 ? 'bg-[#00a884]/40 ring-2 ring-[#00a884] p-0.5 shadow-lg'
