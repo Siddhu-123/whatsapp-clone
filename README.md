@@ -30,9 +30,9 @@ Instead of saving passwords in vulnerable cloud vaults or reusing passwords acro
 
 * 🛒 **Available on the Chrome Web Store**: [**Get Secret Password Generator on Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal)
 * 🐱 **Zero Cloud / Zero Password Storage**: Neither your master secret nor your site passwords are ever saved anywhere. No databases to hack.
-* 🛡️ **Cryptographic KDF**: Uses **PBKDF2 with 600,000 iterations** to derive secure, unguessable passwords locally in your browser.
+* 🛡️ **Cryptographic KDF**: Uses **PBKDF2 with 100,000 iterations** to derive secure, unguessable passwords locally in your browser.
 * 🎭 **Crying Cat Masking**: Passwords are masked with crying cats by default so nobody can shoulder-surf your screen. Long-press to temporarily reveal.
-* ⏱️ **Auto-Wipe Security**: Secrets clear from memory after 20 seconds, and copied passwords automatically clear from the clipboard.
+* ⏱️ **Auto-Wipe Security**: Secrets clear from memory after 20 seconds, and copied passwords are cleared from the clipboard after 30 seconds.
 
 ### 📦 Get the Extension
 * 🛒 **Chrome Web Store (Official Extension)**: [**Secret Password Generator on Chrome Web Store**](https://chromewebstore.google.com/detail/secret-password-generator/mfgnlfigpdcgfmndaljciagcgjiicnal)

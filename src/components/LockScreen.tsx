@@ -226,7 +226,7 @@ export const LockScreen: React.FC<LockScreenProps> = ({
             </div>
 
             <p className="text-xs text-[#8696a0] leading-relaxed">
-              The official <strong>Secret Password Generator</strong> Chrome extension derives fixed 12-character passwords locally from your secret phrase using 600,000 PBKDF2 iterations with zero passwords stored anywhere.
+              The official <strong>Secret Password Generator</strong> Chrome extension derives fixed 12-character passwords locally from your secret phrase using 100,000 PBKDF2 iterations with zero passwords stored anywhere.
             </p>
 
             <div className="space-y-2.5 text-xs text-gray-300">

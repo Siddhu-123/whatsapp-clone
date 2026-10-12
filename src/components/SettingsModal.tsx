@@ -346,7 +346,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     </span>
                   </div>
                   <p className="text-xs text-[#8696a0] leading-relaxed">
-                    A private deterministic password generator Chrome extension. Derives 12-character passwords on-the-fly using 600,000 PBKDF2 rounds, crying cat masking, and 20-second clipboard clearing with zero cloud storage.
+                    A private deterministic password generator Chrome extension. Derives 12-character passwords on-the-fly using 100,000 PBKDF2 rounds, crying cat masking, and 30-second clipboard clearing with zero cloud storage.
                   </p>
 
                   <div className="pt-1">
